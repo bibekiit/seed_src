@@ -4,8 +4,7 @@
 # Place - IIT Bombay                                                        #
 # This code is a python version of Peter Kovesi Matlab's code               #
 # for finger print image enhancement                                        #
-# Most of the code was written by me. Also i have used libermate that       #
-# translated Matlab to python                                               #                                                                                
+# Most of the code was written by me.                                       #                                                                                
 #############################################################################
 
 from __future__ import division
