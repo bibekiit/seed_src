@@ -1,5 +1,11 @@
 import numpy as np
 
+#############################################################################
+# Author - Bibek Behera                                                     #
+# Date - Feb, 2014                                                          #
+# Place - IIT Bombay                                                        #
+#############################################################################
+
 def matlab_style_gauss2D(shape=(3,3),sigma=0.5):
     """
     2D gaussian mask - should give the same result as MATLAB's
