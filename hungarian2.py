@@ -2,6 +2,11 @@ from __future__ import division
 import numpy as np
 from scipy.io import loadmat,savemat
 import os,pdb
+#############################################################################
+# Author - Bibek Behera                                                     #
+# Date - Feb, 2014                                                          #
+# Place - IIT Bombay                                                        #
+#############################################################################
 
 def hminired(A):
     ##HMINIRED Initial reduction of cost matrix for the Hungarian method.
