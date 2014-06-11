@@ -15,8 +15,6 @@ import pdb
 # Author - Bibek Behera                                                     #
 # Date - Feb, 2014                                                          #
 # Place - IIT Bombay                                                        #
-# This code is a python version of Peter Kovesi Matlab's code               #
-# for finger print image enhancement                                        #
 #############################################################################
 #Reference:
 #A. Ravishankar Rao,"A taxonomy of texture description", Springer Verlag
