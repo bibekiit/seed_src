@@ -3,7 +3,7 @@ import numpy as np
 from scipy.io import loadmat,savemat
 import os
 import gaussian_function as gf
-import pdb
+import pdb, math
 #------------------------------------------------------------------------
 #smoothen_frequency_image
 #smoothens the frequency image through a process of diffusion
@@ -63,10 +63,9 @@ def smoothen_frequency_image(fimg, RLOW, RHIGH, diff_cycles):
         fimg = nfimg.copy()
         invalid_cnt = np.sum(np.sum(np.logical_or(fimg < RLOW,fimg > RHIGH)))
         cycles = cycles + 1
-
     print('cycles = '+ str(cycles))
     #end function smoothen_orientation_image
     return nfimg
-fimg = loadmat('fimg.mat')
-fimg = fimg['fimg']
-fimg    =   smoothen_frequency_image(fimg,4,20,5)
+##fimg = loadmat('fimg.mat')
+##fimg = fimg['fimg']
+##fimg    =   smoothen_frequency_image(fimg,4,20,5)

@@ -76,8 +76,8 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
     s = 1
     # out_vec_{1,2} are indicator vectors for keeping track of estimated
     # outliers on each iteration
-    out_vec_1 = np.zeros(shape=(1, nsamp1), dtype='float64')
-    out_vec_2 = np.zeros(shape=(1, nsamp2), dtype='float64')
+    out_vec_1 = np.zeros(shape=(1, nsamp1), dtype='float16')
+    out_vec_2 = np.zeros(shape=(1, nsamp2), dtype='float16')
     cvec = np.array([])
     
     while s:
@@ -85,7 +85,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         #disp(['iter=' int2str(k)])
         # compute shape contexts for (transformed) model
         #   [BH1,mean_dist_1]=sc_compute(Xk', m1(:,4)' ,mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);
-        BH1, mean_dist_1 = sc.sc_compute(Xk.T, np.zeros(shape=(1, nsamp1), dtype='float64'), mean_dist_global, nbins_theta, nbins_r, r_inner, r_outer, out_vec_1) # nargout=2
+        BH1, mean_dist_1 = sc.sc_compute(Xk.T, np.zeros(shape=(1, nsamp1), dtype='float16'), mean_dist_global, nbins_theta, nbins_r, r_inner, r_outer, out_vec_1) # nargout=2
         
         # compute shape contexts for target, using the scale estimate from
         # the warped model
@@ -93,7 +93,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         # iteration, which affects the shape contexts.  Otherwise, Y does
         # not change.
         #   [BH2,mean_dist_2]=sc_compute(Y',m2(:,4)',mean_dist_1,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
-        BH2, mean_dist_2 = sc.sc_compute(Y.T, np.zeros(shape=(1, nsamp2), dtype='float64'), mean_dist_1, nbins_theta, nbins_r, r_inner, r_outer, out_vec_2) # nargout=2
+        BH2, mean_dist_2 = sc.sc_compute(Y.T, np.zeros(shape=(1, nsamp2), dtype='float16'), mean_dist_1, nbins_theta, nbins_r, r_inner, r_outer, out_vec_2) # nargout=2
         # compute regularization parameter
         beta_k = np.dot(np.dot((mean_dist_1 ** 2), beta_init), r ** (k - 1))
         # compute pairwise cost between all shape contexts
@@ -104,7 +104,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         costmat[temp.nonzero()]=eps
         # pad the cost matrix with costs for dummies
         nptsd = nsamp1 + ndum1
-        costmat2 = np.dot(eps_dum, np.ones(shape=(nptsd, nptsd), dtype='float64'))
+        costmat2 = np.dot(eps_dum, np.ones(shape=(nptsd, nptsd), dtype='float16'))
         #JI: cost matrix with dummy nodes appended
         costmat2[0:nsamp1, 0:nsamp2] = costmat
         #disp('running hungarian alg.')
@@ -168,17 +168,17 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         #JI: cvec points to X match
         # format versions of Xk and Y that can be plotted with outliers'
         # correspondences missing
-        X2 = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float64'))
-        m1a = np.dot(np.nan, np.ones(shape=(nsamp2, 6), dtype='float64'))
+        X2 = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float16'))
+        m1a = np.dot(np.nan, np.ones(shape=(nsamp2, 6), dtype='float16'))
         X2[0:nsamp1, :] = Xk
         m1a[0:nsamp1, :] = m1
         X2 = X2[(cvec -1), :]
         m1a = m1a[(cvec -1), :]
-        X2b = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float64'))
+        X2b = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float16'))
         X2b[0:nsamp1, :] = X
         X2b = X2b[(cvec -1), :]
         m2a = m2
-        Y2 = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float64'))
+        Y2 = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float16'))
         Y2[0:nsamp2, :] = Y
         # extract coordinates of non-dummy correspondences and use them
         # to estimate transformation
@@ -254,18 +254,18 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         bad_count = 0
 
         # warp each coordinate
-        fx_aff = np.dot(np.tile(cx[(n_good + 1 -1):n_good + 3],(1,1)), np.concatenate([np.ones(shape=(1, nsamp1), dtype='float64'), X.T]))
+        fx_aff = np.dot(np.tile(cx[(n_good + 1 -1):n_good + 3],(1,1)), np.concatenate([np.ones(shape=(1, nsamp1), dtype='float16'), X.T]))
         d2 = np.maximum(ds.dist2(X3b, X), 0)
         U = d2 * np.log(d2 + np.spacing(1))
         fx_wrp = np.dot(cx[0:n_good].T, U)
         fx = fx_aff + fx_wrp
-        fy_aff = np.dot(np.tile(cy[(n_good + 1 -1):n_good + 3],(1,1)), np.concatenate([np.ones(shape=(1, nsamp1), dtype='float64'), X.T]))
+        fy_aff = np.dot(np.tile(cy[(n_good + 1 -1):n_good + 3],(1,1)), np.concatenate([np.ones(shape=(1, nsamp1), dtype='float16'), X.T]))
         fy_wrp = np.dot(np.tile(cy[0:n_good],(1,1)), U)
         fy = fy_aff + fy_wrp
 
         Z = np.concatenate((fx, fy)).T
 
-        Zk = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float64'))
+        Zk = np.dot(np.nan, np.ones(shape=(nptsd, 2), dtype='float16'))
         Zk[0:nsamp1] = Z
         Zk = Zk[(cvec -1)]
         Zk = Zk[(ind_good -1)]

@@ -67,8 +67,6 @@ def fft_enhance_cubs(img, BLKSZ):
         ETHRESH = 6
         #threshold for the energy
     nHt, nWt = img.shape # nargout=2
-    #pdb.set_trace()
-    img = img.astype('float64')
     #convert to DOUBLE
     nBlkHt = math.floor((nHt - np.dot(2, OVRLP)) / BLKSZ)
     nBlkWt = math.floor((nWt - np.dot(2, OVRLP)) / BLKSZ)
@@ -90,7 +88,6 @@ def fft_enhance_cubs(img, BLKSZ):
     x, y = np.meshgrid(range(0, (nWndSz - 1 +1)), range(0, (nWndSz - 1 +1))) # nargout=2
     dMult = (- 1) ** (x + y)
     #used to center the FFT
-    print 'NFFT = ' + str(NFFT)
     x, y = np.meshgrid(np.arange(- NFFT / 2, (NFFT / 2 - 1 +1)), np.arange(- NFFT / 2, (NFFT / 2 - 1 +1))) # nargout=2
     eps = np.spacing(1)
     r = np.sqrt(x ** 2 + y ** 2) + eps
@@ -152,9 +149,10 @@ def fft_enhance_cubs(img, BLKSZ):
             #compute statistics
             #--------------------------
             dTotal = np.sum(np.sum(dEnergy)) / (np.dot(NFFT, NFFT))
+            
             fimg[(i + 1 -1), (j + 1 -1)] = NFFT / (compute_mean_frequency(dEnergy, r) + eps)
             #ridge separation
-            if np.logical_and(i==34,j==50):
+            if j==16:
                 pdb.set_trace()
             oimg[(i + 1 -1), (j + 1 -1)] = compute_mean_angle(dEnergy, th)
             #ridge angle
@@ -172,10 +170,9 @@ def fft_enhance_cubs(img, BLKSZ):
     #-------------------------
     #process the resulting maps
     #-------------------------
-    pdb.set_trace()
     for i in range(1, 4):
         oimg = soi.smoothen_orientation_image(oimg)
-        #smoothen orientation image
+    #smoothen orientation image
     fimg = sfi.smoothen_frequency_image(fimg, RMIN, RMAX, 5)
     #diffuse frequency image
     cimg = cc.compute_coherence(oimg)
@@ -185,20 +182,20 @@ def fft_enhance_cubs(img, BLKSZ):
     #-------------------------
     #FFT reconstruction
     #-------------------------
-    for i in range(0, (nBlkHt - 1 +1)):
-        for j in range(0, (nBlkWt - 1 +1)):
+    for i in range(0, (int(nBlkHt) - 1 +1)):
+        for j in range(0, (int(nBlkWt) - 1 +1)):
             nRow = np.dot(i, BLKSZ) + OVRLP + 1
             nCol = np.dot(j, BLKSZ) + OVRLP + 1
             #--------------------------
             #apply the filters
             #--------------------------
-            blkfft = reshape(fftSrc[(np.dot(nBlkWt, i) + j + 1 -1), :].T, NFFT, NFFT)
+            blkfft = np.reshape(np.tile(fftSrc[(np.dot(nBlkWt, i) + j + 1 -1), :],(1,1)).T,(NFFT,NFFT))
             #--------------------------
             #reconstruction
             #--------------------------
             af = get_angular_filter(oimg[(i + 1 -1), (j + 1 -1)], bwimg[(i + 1 -1), (j + 1 -1)], angf_pi_4, angf_pi_2)
             blkfft = blkfft * (af)
-            blk = real(ifft2(blkfft) * dMult)
+            blk = np.real(np.fft.ifft2(blkfft) * dMult)
             enhimg[(nRow -1):nRow + BLKSZ - 1, (nCol -1):nCol + BLKSZ - 1] = blk[(OVRLP + 1 -1):OVRLP + BLKSZ, (OVRLP + 1 -1):OVRLP + BLKSZ]
         #for j
     #for i
@@ -206,14 +203,14 @@ def fft_enhance_cubs(img, BLKSZ):
     #--------------------------
     #contrast enhancement
     #--------------------------
-    enhimg = sqrt(abs(enhimg)) * sign(enhimg)
-    mx = np.max(np.max(enhimg))
-    mn = np.min(np.min(enhimg))
-    enhimg = uint8(np.dot((enhimg - mn) / (mx - mn), 254) + 1)
+    enhimg = np.sqrt(abs(enhimg)) * np.sign(enhimg)
+    mx = np.max(enhimg)
+    mn = np.min(enhimg)
+    enhimg = (np.dot((enhimg - mn) / (mx - mn), 254) + 1).astype('uint8')
     #--------------------------
     #clean up the image
     #--------------------------
-    emsk = imresize(eimg, np.array([nHt, nWt]).reshape(1, -1))
+    emsk = np.resize(eimg, (nHt, nWt))
     enhimg[emsk < ETHRESH] = 128
     #end function fft_enhance_cubs
     #-----------------------------------
@@ -261,15 +258,15 @@ def raised_cosine_window(blksz, ovrlp):
 def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
     global NFFT
     TSTEPS = angf_pi_4.shape[1]
-    DELTAT = pi / TSTEPS
+    DELTAT = np.pi / TSTEPS
     #get the closest filter
-    i = floor((t0 + DELTAT / 2) / DELTAT)
-    i = mod(i, TSTEPS) + 1
-    if (bw == pi / 4):
-        r = reshape(angf_pi_4[:, (i -1)], NFFT, NFFT).T
+    i = np.floor((t0 + DELTAT / 2) / DELTAT)
+    i = np.mod(i, TSTEPS) + 1
+    if (bw == np.pi / 4):
+        r = np.reshape(angf_pi_4[:, (i -1)], (NFFT, NFFT)).T
     else:
-        if (bw == pi / 2):
-            r = reshape(angf_pi_2[:, (i -1)], NFFT, NFFT).T
+        if (bw == np.pi / 2):
+            r = np.reshape(angf_pi_2[:, (i -1)], (NFFT, NFFT)).T
         else:
             r = np.ones(shape=(NFFT, NFFT), dtype='float64')
     #end function get_angular_filter
@@ -282,12 +279,12 @@ def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
     #-----------------------------------------------------------
     return r
 def get_angular_bw_image(c):
-    bwimg = np.zeros(shape=(c.shape, c.shape), dtype='float64')
-    bwimg[:, :] = pi / 2
+    bwimg = np.zeros(shape=c.shape, dtype='float64')
+    bwimg[:, :] = np.pi / 2
     #med bw
-    bwimg[(c <= 0.7 -1)] = pi
+    bwimg[(c <= 0.7 -1)] = np.pi
     #high bw
-    bwimg[c >= 0.9] = pi / 4
+    bwimg[c >= 0.9] = np.pi / 4
     #low bw
     #end function get_angular_bw
     #-----------------------------------------------------------

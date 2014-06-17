@@ -17,7 +17,7 @@ import numpy as np
 from scipy.io import loadmat,savemat
 import os
 from PIL import Image
-
+import pdb
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.144])
@@ -29,12 +29,12 @@ def rgb2gray(rgb):
 def histeq(im,nbr_bins=256):
 
    #get image histogram
-   imhist,bins = histogram(im.flatten(),nbr_bins,normed=True)
+   imhist,bins = np.histogram(im.flatten(),nbr_bins,normed=True)
    cdf = imhist.cumsum() #cumulative distribution function
    cdf = 255 * cdf / cdf[-1] #normalize
 
    #use linear interpolation of cdf to find new pixel values
-   im2 = interp(im.flatten(),bins[:-1],cdf)
+   im2 = np.interp(im.flatten(),bins[:-1],cdf)
 
    return im2.reshape(im.shape), cdf
 
@@ -98,7 +98,7 @@ def ridgesegment(im, blksze, thresh):
 # standard deviation.
     
     im = im - np.mean(im.ravel()[maskind[0]])
-    normim = im/np.std(im.ravel()[maskind[0]])
+    normim = im/(np.std(im.ravel()[maskind[0]]) + np.spacing(1))
     
     return [normim, mask, maskind]
 
@@ -214,7 +214,7 @@ def ridgeorient(im, gradientsigma, blocksigma, orientsmoothsigma=0):
     Imax = Gyy+Gxx - Imin
 
     reliability = 1 - np.divide(Imin,(Imax+.001))
-    coherence = (np.divide(Imax-Imin,Imax+Imin))**2
+    coherence = (np.divide(Imax-Imin,Imax+Imin+np.spacing(1)))**2
     
     # Finally mask reliability to exclude regions where the denominator
     # in the orientation calculation above was small.  Here I have set
@@ -548,6 +548,7 @@ def ridgefilter(*varargin):
         newim[(r -1), (c -1)] = np.sum(im[(r - s -1):(r + s), (c - s -1):(c + s)] * filter1[(filterindex[0] -1)][orientindex[(r -1), (c -1)]-1]);
     return newim
 
+pdb.set_trace()
 im = mpimg.imread("C:\Users\Bibek\Documents\MATLAB\sc_minutia\sc_minutia\\108_2.tif")     
 #im = np.around(rgb2gray(img))
 plt.imshow(im, cmap = plt.get_cmap("gray")) # this cmap is not clear
@@ -555,11 +556,11 @@ plt.show()
 
 # Histogram equalization 
 im2,cdf = histeq(im)
-plt.imshow(im, cmap = plt.get_cmap("gray")) # this cmap is not clear
+plt.imshow(im2, cmap = plt.get_cmap("gray")) # this cmap is not clear
 plt.show()
 
 # Identify ridge-like regions and normalise image
-[normim, mask, maskind] = ridgesegment(im, blksze=16, thresh=0.1)
+[normim, mask, maskind] = ridgesegment(im2, blksze=16, thresh=0.1)
 plt.figure(1)
 plt.imshow(normim, cmap = plt.get_cmap("gray"))
 plt.title('normalized image')

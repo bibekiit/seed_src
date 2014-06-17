@@ -36,8 +36,8 @@ def sc_compute(Bsamp, Tsamp, mean_dist, nbins_theta, nbins_r, r_inner, r_outer, 
     # real is needed to
     # prevent bug in Unix version
     #JI: This is an array with elements arctan(xi-xj, yi-yj)
-    theta_array_abs = np.arctan2(np.tile(Bsamp[1, :].T,(1,1)).T * np.ones(shape=(1, nsamp), dtype='float64') - np.ones(shape=(nsamp, 1), dtype='float64')* np.tile(Bsamp[1, :],(1,1)), np.tile(Bsamp[0, :],(1,1)).T * np.ones(shape=(1, nsamp), dtype='float64') - np.ones(shape=(nsamp, 1), dtype='float64')* np.tile(Bsamp[0, :],(1,1))).T
-    theta_array = theta_array_abs - np.tile(Tsamp,(1,1)).T * np.ones(shape=(1, nsamp), dtype='float64')
+    theta_array_abs = np.arctan2(np.tile(Bsamp[1, :].T,(1,1)).T * np.ones(shape=(1, nsamp), dtype='float16') - np.ones(shape=(nsamp, 1), dtype='float16')* np.tile(Bsamp[1, :],(1,1)), np.tile(Bsamp[0, :],(1,1)).T * np.ones(shape=(1, nsamp), dtype='float16') - np.ones(shape=(nsamp, 1), dtype='float16')* np.tile(Bsamp[0, :],(1,1))).T
+    theta_array = theta_array_abs - np.tile(Tsamp,(1,1)).T * np.ones(shape=(1, nsamp), dtype='float16')
     # create joint (r,theta) histogram by binning r_array and
     # theta_array
     # normalize distance by mean, ignoring outliers
@@ -51,7 +51,7 @@ def sc_compute(Bsamp, Tsamp, mean_dist, nbins_theta, nbins_r, r_inner, r_outer, 
     r_array_n = r_array / mean_dist
     # use a log. scale for binning the distances
     r_bin_edges = np.logspace(np.math.log10(r_inner), np.math.log10(r_outer), nbins_r)
-    r_array_q = np.zeros(shape=(nsamp, nsamp), dtype='float64')
+    r_array_q = np.zeros(shape=(nsamp, nsamp), dtype='float16')
     for m in range(1, (nbins_r +1)):
         r_array_q = r_array_q + (r_array_n < r_bin_edges[(m -1)])
     fz = r_array_q > 0
@@ -65,10 +65,10 @@ def sc_compute(Bsamp, Tsamp, mean_dist, nbins_theta, nbins_r, r_inner, r_outer, 
     gauss_dist = np.tile(np.tile(np.exp(- ((r_bin_edges - r_outer) ** 2 / 2.5)),(1,1)).T, (1, nbins_theta))
     gauss_dist = np.sort(gauss_dist.flatten(1))
     nbins = np.dot(nbins_theta, nbins_r)
-    BH = np.zeros(shape=(nsamp, nbins), dtype='float64')
+    BH = np.zeros(shape=(nsamp, nbins), dtype='float16')
     for n in range(1, (nsamp +1)):
         fzn = np.logical_and(fz[(n -1), :] , in_vec)
-        Sn1 = bsr_matrix((np.ones(shape=(1, np.sum(np.logical_and(fz[(n -1), :] , in_vec)==True)), dtype='float64')[0,:],(theta_array_q[(n -1),np.nonzero(fzn)[1]]-1,r_array_q[(n -1),np.nonzero(fzn)[1]]-1))).todense()
+        Sn1 = bsr_matrix((np.ones(shape=(1, np.sum(np.logical_and(fz[(n -1), :] , in_vec)==True)), dtype='float16')[0,:],(theta_array_q[(n -1),np.nonzero(fzn)[1]]-1,r_array_q[(n -1),np.nonzero(fzn)[1]]-1))).todense()
         zeroR = np.zeros((nbins_theta-np.shape(Sn1)[0],np.shape(Sn1)[1]))
         Sn1 = np.concatenate((Sn1,zeroR))
         zeroC=np.zeros((nbins_theta,nbins_r-np.shape(Sn1)[1]))

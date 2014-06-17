@@ -126,8 +126,8 @@ def do_match(*varargin):
     angle = 0
     nsamp1 = f1['X'].shape[0]
     nsamp2 = f2['X'].shape[0]
-    out_vec_1 = np.zeros(shape=(1, nsamp1), dtype='float64')
-    out_vec_2 = np.zeros(shape=(1, nsamp2), dtype='float64')
+    out_vec_1 = np.zeros(shape=(1, nsamp1), dtype='float16')
+    out_vec_2 = np.zeros(shape=(1, nsamp2), dtype='float16')
 
     d1 = ds.dist2(f1['X'], f1['X'])
     d2 = ds.dist2(f2['X'], f2['X'])
@@ -324,8 +324,8 @@ def do_match(*varargin):
 
         A = f1['X'][inda1-1, :]
         B = f2['X'][inda2-1, :]
-        out_vec_1 = np.zeros(shape=(1, A.shape[0]), dtype='float64')
-        out_vec_2 = np.zeros(shape=(1, B.shape[0]), dtype='float64')
+        out_vec_1 = np.zeros(shape=(1, A.shape[0]), dtype='float16')
+        out_vec_2 = np.zeros(shape=(1, B.shape[0]), dtype='float16')
 
         BH1, mean_dist_1 = sc_compute(A.T, f1['M'][inda1-1, 3].T, mean_dist_global, nbins_theta, nbins_r, r_inner, r_outer, out_vec_1) # nargout=2
         BH2, mean_dist_2 = sc_compute(B.T, f2['M'][inda2-1, 3].T, mean_dist_1, nbins_theta, nbins_r, r_inner, r_outer, out_vec_2) # nargout=2
@@ -355,7 +355,6 @@ def do_match(*varargin):
     mc_res = mc_res[ind]
     sc_res = sc_res[ind]
     n_weight = n_weight[ind]
-    pdb.set_trace()
     same_type = np.array(same_type)[ind]
     #o_res=o_res.*n_weight;
 
@@ -384,8 +383,8 @@ def do_match(*varargin):
     #a=abs(ns1-ng_samp1) + abs(ns2-ng_samp2)
     #4
 
-    o_a = np.zeros(shape=(ind.size, ind.size), dtype='float64')
-    o_b = np.zeros(shape=(ind.size, ind.size), dtype='float64')
+    o_a = np.zeros(shape=(ind.size, ind.size), dtype='float16')
+    o_b = np.zeros(shape=(ind.size, ind.size), dtype='float16')
     for i in range(1, (ind.size +1)):
         for j in range(i + 1, (ind.size +1)):
             [o_a[(i -1), (j -1)], ia, ra] = calc_orient(np.tile(f1['O'][res['map'][i -1, 0] -1, :],(1,1)), np.tile(f1['R'][res['map'][i -1, 0] -1, :],(1,1)), np.tile(f1['O'][res['map'][j-1, 0] -1, :],(1,1)), np.tile(f1['R'][res['map'][j-1, 0] -1, :],(1,1))) # nargout=3

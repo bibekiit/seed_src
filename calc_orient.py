@@ -1,6 +1,7 @@
 import numpy as np
-import scipy.io as sio        #remove this later
-import pdb
+#import scipy.io as sio        #remove this later
+#import time
+#import pdb
 
 
 ##def call():
@@ -13,7 +14,7 @@ import pdb
 ##    output = calc_orient(matrix_dict['A'], matrix_dict['rA'], matrix_dict['B'], matrix_dict['rB'])
 ##
 ##    print output
-
+##
 
 
 
@@ -35,7 +36,6 @@ import pdb
     
 
 
-
 def calc_orient(A, rA, B, rB):
 
     """A, B, rA, rB are numpy arrays of dimension 2. Output of this function
@@ -44,8 +44,6 @@ def calc_orient(A, rA, B, rB):
     called r_g of length columnsize(A)."""
     
     
-
-    #pdb.set_trace()
     raw_val = []
 
     noOfrows_A = A.shape[0]
@@ -59,7 +57,6 @@ def calc_orient(A, rA, B, rB):
     index = 1
     r_g = []
 
-
     
 
     for i in range(noOfrows_A):
@@ -70,40 +67,33 @@ def calc_orient(A, rA, B, rB):
         count = 0
         #Following try-except block assigns value for any arbitrary index. If index is
         #beyond length of raw_val, zeros are added.
-        try:
-            raw_val[index - 1] = 0
-        except IndexError:
-            p = len(raw_val)
-            while p < index - 1:
-                raw_val.append(0)
-                p = p + 1
-            raw_val.append(0)
 
+        if index > len(raw_val):
+            raw_val.extend([0]*(index - len(raw_val)))
+                                                     
+        else:
+            raw_val[index - 1] = 0
+    
         for j in range(noOfcols_A):
+                           
             # The binary operator ~= in MATLAB returns 1 when its arguments dissimilar, else 0.
             if rA[i,j] != -1 and rB[i,j] != -1:
                 
                 temp = abs(A[i,j] - B[i,j])
 
-                
-                try:
-                    raw_val[j] = temp       
-                except IndexError:
-                    p = len(raw_val)
-                    while p < j:
-                        raw_val.append(0)
-                        p = p + 1
-                    raw_val.append(temp)
-                
-                try:
-                    r_g[count] = j + 1      #Because MATLAB follows a 1 based indexing
-                except IndexError:
-                    p = len(r_g)            #p is dummy loop variable
-                    while p < count:
-                        r_g.append(0)
-                        p = p + 1
-                    r_g.append(j + 1)       #Because MATLAB follows a 1 based indexing
+                if j > len(raw_val) - 1:
+                    raw_val.extend([0]*(j - len(raw_val)))
+                    raw_val.append(temp)                
+                else:
+                    raw_val[j] = temp
+                    
 
+                if count > len(r_g) - 1:
+                    r_g.extend([0]*(count - len(r_g)))
+                    r_g.append(j + 1)
+                else:
+                    r_g[count] = j + 1
+                                     
                 count = count + 1
 
         #print 'count = ' + str(count)
@@ -112,7 +102,7 @@ def calc_orient(A, rA, B, rB):
         if count > 0:
             index = count
         else:
-            raw_val[index - 1] = 0           #it is not necessary to put that try-except block here
+            raw_val[index - 1] = 0           
       
 
     raw_val = np.asarray(raw_val)               #converting list to numpy array for later use
@@ -134,14 +124,10 @@ def calc_orient(A, rA, B, rB):
 
     r_g = np.asarray(r_g)
 
-    output = []                                 #final o/p from the func, list output
 
-    output.append(similarity)
-    output.append(index)
-    output.append(r_g)
-    
+    return [similarity, index, r_g]         #Code ends
 
-    return output
+        
 
 
     

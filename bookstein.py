@@ -34,9 +34,9 @@ def bookstein(*varargin):
     #JI since log(1) = 0
     K = r2 * np.log(r2 + np.eye(N))
     #JI: ith row of P = (1, xi, yi) 
-    P = np.concatenate((np.ones(shape=(N, 1), dtype='float64'), X),1)
-    L = np.concatenate((np.concatenate((K, P),1), np.concatenate((P.T, np.zeros(shape=(3, 3), dtype='float64')),1)))
-    V = np.concatenate((Y.T, np.zeros(shape=(2, 3), dtype='float64')),1)
+    P = np.concatenate((np.ones(shape=(N, 1), dtype='float16'), X),1)
+    L = np.concatenate((np.concatenate((K, P),1), np.concatenate((P.T, np.zeros(shape=(3, 3), dtype='float16')),1)))
+    V = np.concatenate((Y.T, np.zeros(shape=(2, 3), dtype='float16')),1)
     if nargin > 2:
         # regularization
         L[0:N, 0:N] = L[0:N, 0:N] + np.dot(beta_k, np.eye(N))

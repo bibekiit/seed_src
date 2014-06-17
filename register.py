@@ -1,48 +1,44 @@
 import scipy.io as sio
 import numpy as np
 import copy
-import matplotlib.pyplot as plt
-import pylab as py
-import pdb                              #for debugging only
+#import matplotlib.pyplot as plt
+#import pdb                              #for debugging only
 import time
-import drawnow
+
 
 from calc_orient import calc_orient
 from hist_cost_2 import hist_cost_2
-from dist2 import dist2
+#from dist2 import dist2                #not needed anymore
 from sc_compute import sc_compute
 
 
-##def call():
-##
-##        #pdb.set_trace()
-##
-##        x = sio.loadmat('f1.mat')
-##        f1 = {'X':x['f1'][0,0]['X'],'M':x['f1'][0,0]['M'],'O':x['f1'][0,0]['O'],'R':x['f1'][0,0]['R'],'N':x['f1'][0,0]['N'],'RO':x['f1'][0,0]['RO']}
-##
-##        x = sio.loadmat('f2.mat')
-##        f2 = {'X':x['f2'][0,0]['X'],'M':x['f2'][0,0]['M'],'O':x['f2'][0,0]['O'],'R':x['f2'][0,0]['R'],'N':x['f2'][0,0]['N'],'RO':x['f2'][0,0]['RO']}
-##
-##        [fr,similarity] = register(f1,f2)
-##
-##        return [fr,similarity]
-##
-##        
+def call():
+
+        #pdb.set_trace()
+
+        x = sio.loadmat('f1.mat')
+        f1 = {'X':x['f1'][0,0]['X'],'M':x['f1'][0,0]['M'],'O':x['f1'][0,0]['O'],'R':x['f1'][0,0]['R'],'N':x['f1'][0,0]['N'],'RO':x['f1'][0,0]['RO']}
+
+        x = sio.loadmat('f2.mat')
+        f2 = {'X':x['f2'][0,0]['X'],'M':x['f2'][0,0]['M'],'O':x['f2'][0,0]['O'],'R':x['f2'][0,0]['R'],'N':x['f2'][0,0]['N'],'RO':x['f2'][0,0]['RO']}
+
+        [fr,similarity] = register(f1,f2)
+
+        return [fr,similarity]
 
         
-
-
-
 
 def register(f1,f2):
 
         """Input to this function are two dictionaries f1 and f2. They contain several numpy arrays, possibly having different sizes. Numpy arrays
-        in f1 and f2 have keys as: 'X', 'M', 'O', 'R','G','N','RO','OIMG','OREL'. 'OIMG' and 'OREL' are empty, of no use. Output of this code is a list containing 2 dictionaries, fr
-        and similarity.""" 
+        in f1 and f2 have keys as: 'X', 'M', 'O', 'R','G','N','RO','OIMG','OREL'. 'OIMG' and 'OREL' are empty, of no use. Output of this code is a list containing
+        2 dictionaries, fr and similarity.""" 
 	
 
 	#cla		#to be coded later
-        
+
+        #start = time.time()
+
 
 	m1 = np.mod(f1['M'], np.pi)
 	m2 = np.mod(f2['M'], np.pi)		#m1 and m2 are 2-D numpy arrays
@@ -99,18 +95,18 @@ def register(f1,f2):
         
 
         orients = 100*np.ones([X.shape[0], Y.shape[0]])
-        
+
         start_time = time.time()
-                
         for i in range(X.shape[0]):
                 for j in range(Y.shape[0]):
 
+                        #print 'i = ' + str(i) + ' j = ' + str(j) + '\n'
                         if m1[i,2] < 5 and m2[j, 2] < 5:
                                 orients[i,j] = calc_orient(np.tile(oX[i,:],[1,1]), np.tile(rX[i,:],[1,1]), np.tile(oY[j,:],[1,1]), np.tile(rY[j,:],[1,1]))[0]
                                         #1st call to calc_orient()
-        print time.time() - start_time, "seconds"
 
-        #no problem till here
+        print time.time() - start_time, "seconds"
+        
 
         #pdb.set_trace()
 
@@ -164,20 +160,12 @@ def register(f1,f2):
         i1 = []
         i2 = []
 
-        #print 'nsamp1 = ' + str(nsamp1)
-        #print ' nsamp2 = ' + str(nsamp2)
 
-        #print 'Going inside nested for loops: '
-
-
+        start_time = time.time()
+                
         for i in range(nsamp1):
-                #pdb.set_trace()
-                start_time = time.time()
                 print i
                 for j in range(nsamp2):
-                        
-                
-                        #print 'i = ' + str(i) + ' j = ' + str(j) + '\n'
 
                                                 
                         t_angle = m1[i,3] - m2[j,3]
@@ -189,11 +177,11 @@ def register(f1,f2):
                         region_a = 0
 
                         r_t = m2[j,3] - m1[i,3]
-                        m1t = copy.deepcopy(m1[:,3])
-                        v = copy.deepcopy(X[:,1])
-                        w = copy.deepcopy(X[:,0])
-                        Xt = copy.deepcopy(X)
-                        Xta = copy.deepcopy(Xt)
+                        m1t = m1[:,3].copy()
+                        v = X[:,1].copy()
+                        w = X[:,0].copy()
+                        Xt = X.copy()
+                        Xta = Xt.copy()
                         Xt[:,1] = np.cos(r_t)*v - np.sin(r_t)*w
                         Xt[:,0] = np.sin(r_t)*v + np.cos(r_t)*w
 
@@ -202,17 +190,26 @@ def register(f1,f2):
                         Xt[:,0] = Xt[:,0] - diffx
                         Xt[:,1] = Xt[:,1] - diffy
                         Xtt = 1000*np.ones([nsamp2, 2])
-                        Xtt[0:nsamp1, 0:2] = copy.deepcopy(Xt[:,0:2])
+                        Xtt[0:nsamp1, 0:2] = Xt[:,0:2].copy()
 
-                        Xt = copy.deepcopy(Xtt)
+                        Xt = Xtt.copy()
 
-                        d1 = np.sqrt(dist2(Xt, Y))              #call to dist2() function
+                        A1 = np.dot(np.ones([Y.shape[0],1]), np.tile(np.sum(np.square(Xt),1),[1,1])).transpose()
+                        A2 = np.dot(np.ones([Xt.shape[0],1]), np.tile(np.sum(np.square(Y),1),[1,1]))
+                        A3 = np.dot(Xt,Y.transpose())
+
+                        d1 = A1 + A2 - 2*A3
+
+                        (z1,z2) = np.where(d1 < 0)
+
+                        d1[z1,z2] = 0
+
+                        d1 = np.sqrt(d1)
 
                         
-
                         if GC > 0:
                                 angle_diff = t_angle
-                                sing1 = copy.deepcopy(singular1)
+                                sing1 = singular1.copy()
                                 sing1[:,1] = np.cos(r_t)*singular1[:,1] - np.sin(r_t)*singular1[:,0]
                                 sing1[:,0] = np.sin(r_t)*singular1[:,1] + np.cos(r_t)*singular1[:,0]
 
@@ -264,9 +261,9 @@ def register(f1,f2):
 
                         if r_outer >= 1/8:
                                 r_outer = 1
-                                XX = copy.deepcopy(Xt[ind1,:])
+                                XX = Xt[ind1,:].copy()
                                 XX = np.vstack([XX,np.array([(xl + xr)/2, (xb + xt)/2])])
-                                YY = copy.deepcopy(Y[ind2,:])
+                                YY = Y[ind2,:].copy()
                                 YY = np.vstack([YY,np.array([(xl + xr)/2, (xb + xt)/2])])
                                 out_vec_1 = np.zeros([1,ind1.size + 1])
                                 out_vec_2 = np.zeros([1, ind2.size + 1])
@@ -332,9 +329,7 @@ def register(f1,f2):
                                                 t_o.append(orients[ii, jj]*max(m1[ii,5], m2[jj,5]))
                                                 t_map.append([ii,jj])
                                                 dists.append(d1[ii,jj])
-                                                
-
-                        #pdb.set_trace() #check the values of o_diff, t_o, t_map, dists here with MATLAB code      
+                                                     
 
 
                         o = np.square(sum(t_o))/index
@@ -343,37 +338,36 @@ def register(f1,f2):
 
                         if c > 0 and index > 1:
 
-                                m_map1 = copy.deepcopy(map1)
-                                m_map2 = copy.deepcopy(map2)
+                                m_map1 = map1[:]
+                                m_map2 = map2[:]
                                 sc = sct
                                 area = region_a
-                                o_res = copy.deepcopy(t_o)
-                                map_new = copy.deepcopy(t_map)
+                                o_res = t_o[:]
+                                map_new = t_map[:]
                                 #cla not coded, Line 337 of MATLAB code
                                 test_n = index
                                 angle = t_angle
                                 Xtt[nsamp1:nsamp2,0] = 0
                                 Xtt[nsamp1:nsamp2,1] = 0
-                                Xo = copy.deepcopy(Xtt)
-                                i1 = copy.deepcopy(ind1)
-                                i2 = copy.deepcopy(ind2)
-                                
-##                                plt.hold(True)
-##                                plt.subplot(2,2,1)
-##                                plt.plot(Xtt[:,0],Xtt[:,1],'b+',Y[:,0],Y[:,1],'ro')
-##                                if GC == 1:
-##                                        plt.plot(Xtt[ic1,0],Xtt[ic1,1],'g+',Y[ic2,1],Y[ic2,1],'go')
-##                                plt.title(['i = ' + str(i) + ' j = ' + str(j) + ' n1 = ' + str(nsamp1) + ' n2 = ' + str(nsamp2)])
-##                                plt.hold(False)
-##                                plt.show()
-##                                plt.close('all')
+                                Xo = Xtt.copy()
+                                i1 = ind1.copy()
+                                i2 = ind2.copy()
+
+                                #plt.hold(True)
+                                #plt.subplot(2,2,1)
+                                #plt.plot(Xtt[:,0],Xtt[:,1],'b+',Y[:,0],Y[:,1],'ro')
+                                #if GC == 1:
+                                #        plt.plot(Xtt[ic1,0],Xtt[ic1,1],'g+',Y[ic2,1],Y[ic2,1],'go')
+                                #plt.title(['i = ' + str(i) + ' j = ' + str(j) + ' n1 = ' + str(nsamp1) + ' n2 = ' + str(nsamp2)])
+                                #plt.hold(False)
+                                #plt.show()
+
                                 #pdb.set_trace()
-                
-                print time.time() - start_time, "seconds"
+        print time.time() - start_time, "seconds"
+
 
         # two nested for loops end here
 
-        #print 'for loops end here'
 
         s1 = np.where(f1['M'][:,2] < 5)[0].size
         s2 = np.where(f2['M'][:,2] < 5)[0].size
@@ -387,13 +381,19 @@ def register(f1,f2):
                 fr = copy.deepcopy(f1)
                 fr['M'][:,3] = abs(np.fmod(fr['M'][:,3] - angle + np.pi, np.pi))
                 fr['X'] = Xo[0:nsamp1,:]
-                similarity = {'map':(np.array(map_new) + 1),'o_res':o_res, 'sc':sc, 'area':area, 'angle':angle,'map1':(np.array(m_map1) + 1), 'map2':(np.array(m_map2) + 1)} 
+                similarity = {'map':(np.array(map_new) + 1),'o_res':o_res, 'sc':sc, 'area':area, 'angle':angle,'map1':(np.array(m_map1) + 1), 'map2':(np.array(m_map2) + 1)}
         else:
-                #911 on Line 368 has no meaning !!
+                #911 on Line 368 in MATLAB code has no meaning !!
                 fr = copy.deepcopy(f2)
-                similarity = {'map':(np.array(map_new) + 1),'o_res':o_res, 'sc':sc, 'area':area, 'angle':angle,'map1':(np.array(m_map1) + 1), 'map2':(np.array(m_map2) + 1)} 
+                similarity = {'map':np.array([]),'o_res':np.array([]), 'sc':-1, 'area':-1}
+
+        #end = time.time( )
+
+        #print 'time taken = ' + str(end - start) + ' seconds'
 
         return [fr,similarity]
+
+
 
         #Code ends
                                    

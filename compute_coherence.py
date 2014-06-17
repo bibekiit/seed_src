@@ -34,12 +34,11 @@ def compute_coherence(oimg):
     for i in range(N + 1, (h + N +1)):
         for j in range(N + 1, (w + N +1)):
             th = oimg[(i -1), (j -1)]
-            blk = oimg[(i - N -1):i + N, (j - N -1):j + N]
+            blk = oimg[(i - N -1):i + N, (j - N -1):j + N].copy()
             cimg[(i - N -1), (j - N -1)] = np.sum(np.sum(abs(np.cos(blk - th)))) / ((np.dot(2, N) + 1) ** 2)
     #end function compute_coherence
-        #pdb.set_trace()
     return cimg
 
-oimg = loadmat('oimg.mat')
-oimg = oimg['oimg']
-cimg = compute_coherence(oimg)
+##oimg = loadmat('oimg.mat')
+##oimg = oimg['oimg']
+##cimg = compute_coherence(oimg)
