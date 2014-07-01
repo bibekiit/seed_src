@@ -372,11 +372,6 @@ def register(f1,f2):
         s1 = np.where(f1['M'][:,2] < 5)[0].size
         s2 = np.where(f2['M'][:,2] < 5)[0].size
 
-        #print 's1 = '
-        #print s1
-        #print 's2 = '
-        #print s2
-
         if Xo.size > 0:
                 fr = copy.deepcopy(f1)
                 fr['M'][:,3] = abs(np.fmod(fr['M'][:,3] - angle + np.pi, np.pi))
@@ -386,10 +381,6 @@ def register(f1,f2):
                 #911 on Line 368 in MATLAB code has no meaning !!
                 fr = copy.deepcopy(f2)
                 similarity = {'map':np.array([]),'o_res':np.array([]), 'sc':-1, 'area':-1}
-
-        #end = time.time( )
-
-        #print 'time taken = ' + str(end - start) + ' seconds'
 
         return [fr,similarity]
 
