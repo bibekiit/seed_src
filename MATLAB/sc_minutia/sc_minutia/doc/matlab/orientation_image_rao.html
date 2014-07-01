@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of orientation_image_rao</title>
+  <meta name="keywords" content="orientation_image_rao">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; orientation_image_rao.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>orientation_image_rao
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [gimg,oimg] = orientation_image_rao(x) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">------------------------------------------------------------------------
+orientation_image_rao
+Computes the orientation image for a fingerprints. 
+Usage:
+[gimg,oimg] = orientation_image_rao(x)
+oimg - orientation image
+gmag - gradient magnitude
+x    - fingerprint image 
+NOTE: The image x dimension should be multiple of 8
+
+Contact:
+   ssc5@eng.buffalo.edu
+   www.eng.buffalo.edu/~ssc5
+Reference:
+A. Ravishankar Rao,&quot;A taxonomy of texture description&quot;, Springer Verlag
+------------------------------------------------------------------------
+---------------------------
+parameters
+---------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="pseudo_matched_filter.html" class="code" title="function y = pseudo_matched_filter(x,alpha)">pseudo_matched_filter</a>	------------------------------------------------------------------------</li><li><a href="smoothen_orientation_image.html" class="code" title="function noimg = smoothen_orientation_image(oimg)">smoothen_orientation_image</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%------------------------------------------------------------------------</span>
+0002 <span class="comment">%orientation_image_rao</span>
+0003 <span class="comment">%Computes the orientation image for a fingerprints.</span>
+0004 <span class="comment">%Usage:</span>
+0005 <span class="comment">%[gimg,oimg] = orientation_image_rao(x)</span>
+0006 <span class="comment">%oimg - orientation image</span>
+0007 <span class="comment">%gmag - gradient magnitude</span>
+0008 <span class="comment">%x    - fingerprint image</span>
+0009 <span class="comment">%NOTE: The image x dimension should be multiple of 8</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">%Contact:</span>
+0012 <span class="comment">%   ssc5@eng.buffalo.edu</span>
+0013 <span class="comment">%   www.eng.buffalo.edu/~ssc5</span>
+0014 <span class="comment">%Reference:</span>
+0015 <span class="comment">%A. Ravishankar Rao,&quot;A taxonomy of texture description&quot;, Springer Verlag</span>
+0016 <span class="comment">%------------------------------------------------------------------------</span>
+0017 <a name="_sub0" href="#_subfunctions" class="code">function [gimg,oimg] = orientation_image_rao(x)</a>
+0018     <span class="comment">%---------------------------</span>
+0019     <span class="comment">%parameters</span>
+0020     <span class="comment">%---------------------------</span>
+0021     alpha   =   0.3;
+0022     N       =   1;
+0023     <span class="comment">%---------------------------</span>
+0024     <span class="comment">%smoothen the image</span>
+0025     <span class="comment">%---------------------------</span>
+0026     msk     =   fspecial(<span class="string">'gaussian'</span>,7);
+0027     x       =   imfilter(x,msk,<span class="string">'symmetric'</span>,<span class="string">'same'</span>);
+0028     x       =   <a href="pseudo_matched_filter.html" class="code" title="function y = pseudo_matched_filter(x,alpha)">pseudo_matched_filter</a>(x,alpha);
+0029 
+0030     <span class="comment">%---------------------------</span>
+0031     <span class="comment">%obtain gradient image</span>
+0032     <span class="comment">%---------------------------</span>
+0033     hy      =   -fspecial(<span class="string">'sobel'</span>)
+0034     hx      =   transpose(hy);
+0035     
+0036     gx      =   imfilter(x,hx,<span class="string">'symmetric'</span>,<span class="string">'same'</span>);
+0037     gy      =   imfilter(x,hy,<span class="string">'symmetric'</span>,<span class="string">'same'</span>);
+0038     
+0039     gmag    =   sqrt(gx.^2+gy.^2);
+0040     theta   =   atan(gy./(gx+1e-5));
+0041     <span class="comment">%---------------------------</span>
+0042     <span class="comment">%perform averaging</span>
+0043     <span class="comment">%---------------------------</span>
+0044     oimg    =   [];
+0045     gimg    =   [];
+0046     [h,w]   =   size(x);
+0047     <span class="keyword">for</span> ii=1:N:h-N+1
+0048         oln = [];
+0049         gln = [];
+0050         <span class="keyword">for</span> jj=1:N:w-N+1
+0051             a   = theta(ii:ii+N-1,jj:jj+N-1);
+0052             g   = gmag(ii:ii+N-1,jj:jj+N-1).^2;
+0053             <span class="comment">%----------------------------</span>
+0054             <span class="comment">%vector averaging</span>
+0055             <span class="comment">%----------------------------</span>
+0056             num = sum(sum(g.*sin(2*a)));
+0057             den = sum(sum(g.*cos(2*a)));
+0058             t   = atan2(num,(den+1e-5));
+0059             t(t&lt;0) = t(t&lt;0)+2*pi;
+0060             t   = 0.5*t; <span class="comment">%convert to [0,pi]</span>
+0061             g   = sum(sum(g));
+0062             oln = [oln,t];
+0063             gln = [gln,g];
+0064         <span class="keyword">end</span>;
+0065         gimg = [gimg;gln];
+0066         oimg = [oimg;oln];
+0067     <span class="keyword">end</span>;
+0068     
+0069     <span class="comment">%---------------------------</span>
+0070     <span class="comment">%smoothen the orientation image</span>
+0071     <span class="comment">%---------------------------</span>
+0072     <span class="keyword">for</span> i = 1:3
+0073         oimg = <a href="smoothen_orientation_image.html" class="code" title="function noimg = smoothen_orientation_image(oimg)">smoothen_orientation_image</a>(oimg);
+0074     <span class="keyword">end</span>;
+0075 <span class="comment">%end function orientation_image</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

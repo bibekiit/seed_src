@@ -1,0 +1,304 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of test_bifurcation</title>
+  <meta name="keywords" content="test_bifurcation">
+  <meta name="description" content="Returns if the single ridge in a bifurcation is">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; test_bifurcation.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>test_bifurcation
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>Returns if the single ridge in a bifurcation is</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [res, progress, sx, sy, angle] = test_bifurcation(img, x, y, o, core_x, core_y) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Returns if the single ridge in a bifurcation is 
+ the going the same direction as the orientation (res=3)
+ or in in the opposite (res=2)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>	DIST2	Calculates squared distance between two sets of points.</li><li><a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>	-----Sub functions-------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="extract_finger.html" class="code" title="function [ret] = extract_finger(filename)">extract_finger</a>	Author: Joshua Abraham</li><li><a href="figures.html" class="code" title="function [ret] = figures(f1, f2)">figures</a>	Bibliography</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 
+0002 <span class="comment">% Returns if the single ridge in a bifurcation is</span>
+0003 <span class="comment">% the going the same direction as the orientation (res=3)</span>
+0004 <span class="comment">% or in in the opposite (res=2)</span>
+0005 
+0006 <a name="_sub0" href="#_subfunctions" class="code">function [res, progress, sx, sy, angle] = test_bifurcation(img, x, y, o, core_x, core_y)</a>
+0007 
+0008    iax = 0; iay = 0; ibx = 0; iby = 0; icx = 0; icy = 0;
+0009    progress = 1;
+0010    path_len = 4; 
+0011 
+0012    pax = 0; pay=0; pbx = 0; pby=0; pcx = 0; pcy=0;
+0013    pao = 0; pbo = 0; pco = 0;      <span class="comment">%1-8 position of 3x3 square around minutia</span>
+0014    
+0015    <span class="keyword">for</span> i = 1:8
+0016          [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, i);
+0017          [tb, xb, yb] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, i+1);
+0018          <span class="keyword">if</span> (ta &gt; tb) 
+0019            <span class="keyword">if</span> pao == 0
+0020               <span class="keyword">if</span> i &lt; 5
+0021                  pao = 4 + i;
+0022               <span class="keyword">else</span>
+0023                  pao = mod(4 + i, 9) + 1;
+0024               <span class="keyword">end</span>
+0025               pax = xa;
+0026               pay = ya;
+0027            <span class="keyword">else</span>
+0028               <span class="keyword">if</span> pbo == 0 
+0029                  <span class="keyword">if</span> i &lt; 5
+0030                     pbo = 4 + i;
+0031                  <span class="keyword">else</span>
+0032                     pbo = mod(4 + i, 9) + 1;
+0033                  <span class="keyword">end</span>
+0034                  pbx = xa;
+0035                  pby = ya;
+0036               <span class="keyword">else</span>
+0037                  <span class="keyword">if</span> i &lt; 5 
+0038                     pco = 4 + i;
+0039                  <span class="keyword">else</span>
+0040                     pco = mod(4 + i, 9) + 1;
+0041                  <span class="keyword">end</span>
+0042                  pcx = xa;
+0043                  pcy = ya;
+0044                  <span class="keyword">break</span>
+0045               <span class="keyword">end</span>
+0046            <span class="keyword">end</span>   
+0047          <span class="keyword">end</span>
+0048    <span class="keyword">end</span>
+0049 
+0050    xaa=0; yaa=0; xbb=0; ybb=0; xcc=0; ycc=0;
+0051    
+0052    hist=[];
+0053    hist(1,:)=[pay, pax];
+0054    hist(2,:)=[pby, pbx];
+0055    hist(3,:)=[pcy, pcx];
+0056    hist(4,:)=[y, x];
+0057    stop=0;
+0058    <span class="keyword">while</span> ( progress &lt; path_len &amp;&amp; ~stop)
+0059       progress = progress + 1;
+0060       da = 0; db = 0; dc = 0;
+0061       <span class="keyword">if</span> pao ~= 0
+0062           i = 1;
+0063 
+0064           cn = 0;
+0065           <span class="keyword">for</span> ii = 1:8
+0066                [t1, x_A, y_A] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pax, pay, ii);
+0067                [t2, x_B, y_B] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img,pax,pay, ii+1);
+0068                cn = cn + abs (t1-t2);
+0069           <span class="keyword">end</span>
+0070           cn = cn / 2;
+0071  
+0072           <span class="keyword">if</span> cn == 1 || cn == 3
+0073              stop=1;
+0074           <span class="keyword">end</span>
+0075 
+0076           <span class="keyword">while</span>  i &lt; 9 &amp;&amp; da == 0
+0077 
+0078              [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pax, pay, i);
+0079              [tz, xz, yz] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pax, pay, i+1);
+0080 
+0081              ind_y=find(hist(:,1) == ya);
+0082              ind_x=find(hist(ind_y,2) == xa);
+0083              <span class="keyword">if</span> numel(ind_x) &gt; 0
+0084                 i = i+1;
+0085                 <span class="keyword">continue</span>
+0086              <span class="keyword">end</span>
+0087 
+0088              <span class="keyword">if</span> ta &gt; tz &amp;&amp; (xa ~=x || xa~=y)
+0089                 pax = xa;
+0090                 pay = ya;
+0091                 hist(size(hist,1)+1,:)=[pay, pax];
+0092                 da = 1;
+0093                 xaa = xa;
+0094                 yaa = ya;
+0095              <span class="keyword">end</span>
+0096              i = i+1;
+0097  
+0098           <span class="keyword">end</span>
+0099           <span class="keyword">if</span> da == 0 
+0100              <span class="keyword">break</span>
+0101           <span class="keyword">end</span>
+0102       <span class="keyword">end</span>
+0103 
+0104       <span class="keyword">if</span> pbo ~= 0 &amp;&amp; ~stop
+0105 
+0106           cn = 0;
+0107           <span class="keyword">for</span> ii = 1:8
+0108                [t1, x_A, y_A] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img,pbx, pby, ii);
+0109                [t2, x_B, y_B] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img,pbx, pby, ii+1);
+0110                cn = cn + abs (t1-t2);
+0111           <span class="keyword">end</span>
+0112           cn = cn / 2;
+0113  
+0114           <span class="keyword">if</span> cn == 1 || cn == 3
+0115              stop=1;
+0116           <span class="keyword">end</span>
+0117 
+0118           i=1;
+0119 
+0120           <span class="keyword">while</span>  i &lt; 9 &amp;&amp; db == 0
+0121  
+0122              [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pbx, pby, i);
+0123              [tz, xz, yz] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pbx, pby, i+1);
+0124 
+0125              ind_y=find(hist(:,1) == ya);
+0126              ind_x=find(hist(ind_y,2) == xa);
+0127              <span class="keyword">if</span> numel(ind_x) &gt; 0
+0128                 i = i+1;
+0129                 <span class="keyword">continue</span>
+0130              <span class="keyword">end</span>
+0131 
+0132              <span class="keyword">if</span> ta &gt; tz &amp;&amp; (xa ~=x || xa~=y)
+0133                 pbx = xa;
+0134                 pby = ya;
+0135                 hist(size(hist,1)+1,:)=[pby, pbx];
+0136                 db=1;
+0137                 xbb=xa;                                                            
+0138                 ybb=ya;                                                            
+0139              <span class="keyword">end</span>
+0140              i = i+1;
+0141  
+0142           <span class="keyword">end</span>
+0143       <span class="keyword">end</span>
+0144 
+0145       <span class="keyword">if</span> pco ~= 0 &amp;&amp; ~stop
+0146 
+0147           cn = 0;
+0148           <span class="keyword">for</span> ii = 1:8
+0149                [t1, x_A, y_A] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img,pcx, pcy, ii);
+0150                [t2, x_B, y_B] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pcx, pcy, ii+1);
+0151                cn = cn + abs (t1-t2);
+0152           <span class="keyword">end</span>
+0153           cn = cn / 2;
+0154  
+0155           <span class="keyword">if</span> cn == 1 || cn == 3
+0156              stop=1;
+0157           <span class="keyword">end</span>
+0158 
+0159 
+0160           i = 1;
+0161           <span class="keyword">while</span>  i &lt; 9 &amp;&amp; dc == 0
+0162   
+0163              [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pcx, pcy, i);
+0164              [tz, xz, yz] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pcx, pcy, i+1);
+0165 
+0166              ind_y=find(hist(:,1) == ya);
+0167              ind_x=find(hist(ind_y,2) == xa);
+0168              <span class="keyword">if</span> numel(ind_x) &gt; 0
+0169                 i = i+1;
+0170                 <span class="keyword">continue</span>
+0171              <span class="keyword">end</span>
+0172 
+0173              <span class="keyword">if</span> ta &gt; tz &amp;&amp; (xa ~=x || xa~=y)
+0174                 pcx = xa;
+0175                 pcy = ya;
+0176                 hist(size(hist,1)+1,:)=[pcy, pcx];
+0177                 dc = 1;
+0178                 xcc = xa;                                                            
+0179                 ycc = ya;                                                            
+0180              <span class="keyword">end</span>
+0181              i = i+1;
+0182            <span class="keyword">end</span>
+0183       <span class="keyword">end</span>
+0184    <span class="keyword">end</span>
+0185 
+0186    d1 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xaa yaa], [xbb ybb]));
+0187    d2 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xaa yaa], [xcc ycc]));
+0188    d3 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xcc ycc], [xbb ybb]));
+0189 
+0190 
+0191    <span class="keyword">if</span> d1 &gt;= d3 &amp;&amp;  d2 &gt;= d3
+0192      sx = xaa;
+0193      sy = yaa;
+0194      ind = pao;
+0195    <span class="keyword">elseif</span> d1 &gt;= d2 &amp;&amp; d3 &gt;= d2
+0196      sx = xbb;
+0197      sy = ybb;
+0198      ind = pbo;
+0199    <span class="keyword">elseif</span> d3 &gt;= d1 &amp;&amp; d2 &gt;= d1   
+0200      sx = xcc;
+0201      sy = ycc;
+0202      ind = pco;
+0203    <span class="keyword">else</span>
+0204      pause
+0205    <span class="keyword">end</span>
+0206 
+0207 
+0208    d1 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xaa yaa], [core_x core_y]));
+0209    d2 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xbb ybb], [core_x core_y]));
+0210    d3 = sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>([xcc ycc], [core_x core_y]));
+0211 
+0212    qx=0;
+0213    qy=0;
+0214    diff=0;
+0215    <span class="keyword">if</span> d1 &gt;= d2 &amp;&amp;  d1 &gt;= d3
+0216      qx = xaa;
+0217      qy = yaa;
+0218      ind = pao;
+0219    <span class="keyword">elseif</span> d2 &gt;= d3 &amp;&amp; d2 &gt;= d1
+0220      qx = xbb;
+0221      qy = ybb;
+0222      ind = pbo;
+0223    <span class="keyword">elseif</span> d3 &gt;= d2 &amp;&amp; d3 &gt;= d1
+0224      qx = xcc;
+0225      qy = ycc;
+0226      ind = pco;
+0227    <span class="keyword">else</span>
+0228      pause
+0229    <span class="keyword">end</span>
+0230 
+0231 
+0232 <span class="comment">%sy</span>
+0233 <span class="comment">%sx</span>
+0234 <span class="comment">%y</span>
+0235 <span class="comment">%x</span>
+0236 <span class="comment">%   if core_x == 0</span>
+0237       angle = mod(atan2(y-sy, sx-x), 2*pi);
+0238 <span class="comment">%      o</span>
+0239       <span class="keyword">if</span> qx==sx &amp;&amp; qy==sy <span class="comment">%abs(angle - o) &gt; pi/3</span>
+0240          res = 3;
+0241       <span class="keyword">else</span> 
+0242          res = 3;
+0243       <span class="keyword">end</span>
+0244 <span class="comment">%progress</span>
+0245 <span class="comment">%pause</span>
+0246 
+0247 <span class="comment">%   else</span>
+0248 <span class="comment">%      if dist2([sy sx], [core_y core_x]) &lt;= dist2([y x], [core_y core_x])</span>
+0249 <span class="comment">%         res = 2;</span>
+0250 <span class="comment">%      else</span>
+0251 <span class="comment">%         res=3;</span>
+0252 <span class="comment">%      end</span>
+0253 <span class="comment">%   end</span>
+0254 
+0255</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ridgeorient</title>
+  <meta name="keywords" content="ridgeorient">
+  <meta name="description" content="RIDGEORIENT - Estimates the local orientation of ridges in a fingerprint">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; ridgeorient.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>ridgeorient
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>RIDGEORIENT - Estimates the local orientation of ridges in a fingerprint</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [orientim, reliability] =ridgeorient(im, gradientsigma, blocksigma, orientsmoothsigma) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> RIDGEORIENT - Estimates the local orientation of ridges in a fingerprint
+
+ Usage:  [orientim, reliability] = ridgeorientation(im, gradientsigma,...
+                                             blocksigma, ...
+                                             orientsmoothsigma)
+
+ Arguments:  im                - A normalised input image.
+             gradientsigma     - Sigma of the derivative of Gaussian
+                                 used to compute image gradients.
+             blocksigma        - Sigma of the Gaussian weighting used to
+                                 sum the gradient moments.
+             orientsmoothsigma - Sigma of the Gaussian used to smooth
+                                 the final orientation vector field.
+ 
+ Returns:    orientim          - The orientation image in radians.
+                                 Orientation values are +ve clockwise
+                                 and give the direction *along* the
+                                 ridges.
+             reliability       - Measure of the reliability of the
+                                 orientation measure.  This is a value
+                                 between 0 and 1. I think a value above
+                                 about 0.5 can be considered 'reliable'.
+
+
+ With a fingerprint image at a 'standard' resolution of 500dpi suggested
+ parameter values might be:
+
+    [orientim, reliability] = ridgeorient(im, 1, 3, 3);
+
+ See also: <a href="ridgesegment.html" class="code" title="function [normim, mask, maskind] = ridgesegment(im, blksze, thresh)">RIDGESEGMENT</a>, <a href="ridgefreq.html" class="code" title="function [freq, medianfreq] = ridgefreq(im, mask, orient, blksze, windsze,minWaveLength, maxWaveLength)">RIDGEFREQ</a>, <a href="ridgefilter.html" class="code" title="function newim = ridgefilter(im, orient, freq, kx, ky, showfilter)">RIDGEFILTER</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="im.html" class="code" title="function im(X,vec);">im</a>	im(X) or im(X,[minval maxval])</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="testfin.html" class="code" title="function [newim, binim, mask, reliability, orientim] =  testfin(im)">testfin</a>	TESTFIN</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% RIDGEORIENT - Estimates the local orientation of ridges in a fingerprint</span>
+0002 <span class="comment">%</span>
+0003 <span class="comment">% Usage:  [orientim, reliability] = ridgeorientation(im, gradientsigma,...</span>
+0004 <span class="comment">%                                             blocksigma, ...</span>
+0005 <span class="comment">%                                             orientsmoothsigma)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Arguments:  im                - A normalised input image.</span>
+0008 <span class="comment">%             gradientsigma     - Sigma of the derivative of Gaussian</span>
+0009 <span class="comment">%                                 used to compute image gradients.</span>
+0010 <span class="comment">%             blocksigma        - Sigma of the Gaussian weighting used to</span>
+0011 <span class="comment">%                                 sum the gradient moments.</span>
+0012 <span class="comment">%             orientsmoothsigma - Sigma of the Gaussian used to smooth</span>
+0013 <span class="comment">%                                 the final orientation vector field.</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Returns:    orientim          - The orientation image in radians.</span>
+0016 <span class="comment">%                                 Orientation values are +ve clockwise</span>
+0017 <span class="comment">%                                 and give the direction *along* the</span>
+0018 <span class="comment">%                                 ridges.</span>
+0019 <span class="comment">%             reliability       - Measure of the reliability of the</span>
+0020 <span class="comment">%                                 orientation measure.  This is a value</span>
+0021 <span class="comment">%                                 between 0 and 1. I think a value above</span>
+0022 <span class="comment">%                                 about 0.5 can be considered 'reliable'.</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% With a fingerprint image at a 'standard' resolution of 500dpi suggested</span>
+0026 <span class="comment">% parameter values might be:</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">%    [orientim, reliability] = ridgeorient(im, 1, 3, 3);</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% See also: RIDGESEGMENT, RIDGEFREQ, RIDGEFILTER</span>
+0031 
+0032 <span class="comment">% Original version by Raymond Thai,  May 2003</span>
+0033 <span class="comment">% Reworked by Peter Kovesi           January 2005</span>
+0034 <span class="comment">% School of Computer Science &amp; Software Engineering</span>
+0035 <span class="comment">% The University of Western Australia</span>
+0036 <span class="comment">% pk at csse uwa edu au</span>
+0037 <span class="comment">% http://www.csse.uwa.edu.au/~pk</span>
+0038 
+0039 
+0040 <a name="_sub0" href="#_subfunctions" class="code">function [orientim, reliability] = </a><span class="keyword">...</span>
+0041              ridgeorient(<a href="im.html" class="code" title="function im(X,vec);">im</a>, gradientsigma, blocksigma, orientsmoothsigma)
+0042         
+0043     [rows,cols] = size(<a href="im.html" class="code" title="function im(X,vec);">im</a>);
+0044     
+0045     <span class="comment">% Calculate image gradients.</span>
+0046     sze = fix(6*gradientsigma);   <span class="keyword">if</span> ~mod(sze,2); sze = sze+1; <span class="keyword">end</span>
+0047     f = fspecial(<span class="string">'gaussian'</span>, sze, gradientsigma); <span class="comment">% Generate Gaussian filter.</span>
+0048     [fx,fy] = gradient(f);                        <span class="comment">% Gradient of Gausian.</span>
+0049     
+0050     Gx = filter2(fx, <a href="im.html" class="code" title="function im(X,vec);">im</a>); <span class="comment">% Gradient of the image in x</span>
+0051     Gy = filter2(fy, <a href="im.html" class="code" title="function im(X,vec);">im</a>); <span class="comment">% ... and y</span>
+0052     
+0053     <span class="comment">% Estimate the local ridge orientation at each point by finding the</span>
+0054     <span class="comment">% principal axis of variation in the image gradients.</span>
+0055    
+0056     Gxx = Gx.^2;       <span class="comment">% Covariance data for the image gradients</span>
+0057     Gxy = Gx.*Gy;
+0058     Gyy = Gy.^2;
+0059     
+0060     <span class="comment">% Now smooth the covariance data to perform a weighted summation of the</span>
+0061     <span class="comment">% data.</span>
+0062     sze = fix(6*blocksigma);   <span class="keyword">if</span> ~mod(sze,2); sze = sze+1; <span class="keyword">end</span>    
+0063     f = fspecial(<span class="string">'gaussian'</span>, sze, blocksigma);
+0064     Gxx = filter2(f, Gxx); 
+0065     Gxy = 2*filter2(f, Gxy);
+0066     Gyy = filter2(f, Gyy);
+0067     
+0068     <span class="comment">% Analytic solution of principal direction</span>
+0069     denom = sqrt(Gxy.^2 + (Gxx - Gyy).^2) + eps;
+0070     sin2theta = Gxy./denom;            <span class="comment">% Sine and cosine of doubled angles</span>
+0071     cos2theta = (Gxx-Gyy)./denom;
+0072        
+0073     sze = fix(6*orientsmoothsigma);   <span class="keyword">if</span> ~mod(sze,2); sze = sze+1; <span class="keyword">end</span>    
+0074     f = fspecial(<span class="string">'gaussian'</span>, sze, orientsmoothsigma);    
+0075     cos2theta = filter2(f, cos2theta); <span class="comment">% Smoothed sine and cosine of</span>
+0076     sin2theta = filter2(f, sin2theta); <span class="comment">% doubled angles</span>
+0077     
+0078     orientim = pi/2 + atan2(sin2theta,cos2theta)/2;
+0079 
+0080     <span class="comment">% Calculate 'reliability' of orientation data.  Here we calculate the</span>
+0081     <span class="comment">% area moment of inertia about the orientation axis found (this will</span>
+0082     <span class="comment">% be the minimum inertia) and an axis  perpendicular (which will be</span>
+0083     <span class="comment">% the maximum inertia).  The reliability measure is given by</span>
+0084     <span class="comment">% 1.0-min_inertia/max_inertia.  The reasoning being that if the ratio</span>
+0085     <span class="comment">% of the minimum to maximum inertia is close to one we have little</span>
+0086     <span class="comment">% orientation information.</span>
+0087     
+0088     Imin = (Gyy+Gxx)/2 - (Gxx-Gyy).*cos2theta/2 - Gxy.*sin2theta/2;
+0089     Imax = Gyy+Gxx - Imin;
+0090     
+0091     reliability = 1 - Imin./(Imax+.001);
+0092     
+0093     <span class="comment">% Finally mask reliability to exclude regions where the denominator</span>
+0094     <span class="comment">% in the orientation calculation above was small.  Here I have set</span>
+0095     <span class="comment">% the value to 0.001, adjust this if you feel the need</span>
+0096     reliability = reliability.*(denom&gt;.001);</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

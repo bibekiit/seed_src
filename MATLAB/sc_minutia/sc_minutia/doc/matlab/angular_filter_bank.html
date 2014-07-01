@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of angular_filter_bank</title>
+  <meta name="keywords" content="angular_filter_bank">
+  <meta name="description" content="----------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; angular_filter_bank.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>angular_filter_bank
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>----------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function angular_filter_bank(BW,fname) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">----------------------------------------------------------
+angular_filter_bank
+precomputes angular filter bank and also generates a C
+header file with filter coefficients. The matlab variable
+angf is stored in file 'angular_filters.mat' and the C 
+variables are stored in 'angular_fiter.h'.
+There are TSTEPS number of raised cosine filter that span the 
+interval [0,180]
+usage
+ angular_filter_bank(BW,fname)
+BW    - bandwidth (radians)
+fname - file name
+Contact:
+   ssc5@eng.buffalo.edu
+   www.eng.buffalo.edu/~ssc5
+References:
+B.G.Sherlock and  D.M.Monro and  K.Millard,&quot;Fingerprint Enhancement by
+directional Fourier Filtering&quot;,IEEE Visual Image Signal Processing,
+141(2), pp. 87--94, 1994
+----------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function d = angular_distance(th,t0)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%----------------------------------------------------------</span>
+0002 <span class="comment">%angular_filter_bank</span>
+0003 <span class="comment">%precomputes angular filter bank and also generates a C</span>
+0004 <span class="comment">%header file with filter coefficients. The matlab variable</span>
+0005 <span class="comment">%angf is stored in file 'angular_filters.mat' and the C</span>
+0006 <span class="comment">%variables are stored in 'angular_fiter.h'.</span>
+0007 <span class="comment">%There are TSTEPS number of raised cosine filter that span the</span>
+0008 <span class="comment">%interval [0,180]</span>
+0009 <span class="comment">%usage</span>
+0010 <span class="comment">% angular_filter_bank(BW,fname)</span>
+0011 <span class="comment">%BW    - bandwidth (radians)</span>
+0012 <span class="comment">%fname - file name</span>
+0013 <span class="comment">%Contact:</span>
+0014 <span class="comment">%   ssc5@eng.buffalo.edu</span>
+0015 <span class="comment">%   www.eng.buffalo.edu/~ssc5</span>
+0016 <span class="comment">%References:</span>
+0017 <span class="comment">%B.G.Sherlock and  D.M.Monro and  K.Millard,&quot;Fingerprint Enhancement by</span>
+0018 <span class="comment">%directional Fourier Filtering&quot;,IEEE Visual Image Signal Processing,</span>
+0019 <span class="comment">%141(2), pp. 87--94, 1994</span>
+0020 <span class="comment">%----------------------------------------------------------</span>
+0021 <a name="_sub0" href="#_subfunctions" class="code">function angular_filter_bank(BW,fname)</a>
+0022 close all;
+0023 <span class="comment">%---------------</span>
+0024 <span class="comment">%parameters</span>
+0025 <span class="comment">%---------------</span>
+0026 FFTN    =   32;<span class="comment">%64;%32;</span>
+0027 TSTEPS  =   12; <span class="comment">%15 degrees interval</span>
+0028 DELTAT  =   pi/TSTEPS;
+0029 <span class="comment">%---------------</span>
+0030 <span class="comment">%precompute</span>
+0031 <span class="comment">%---------------</span>
+0032 [x,y]   =   meshgrid(-FFTN/2:FFTN/2-1,-FFTN/2:FFTN/2-1);
+0033 r       =   sqrt(x.^2+y.^2);
+0034 th      =   atan2(y,x);
+0035 th(th&lt;0)=   th(th&lt;0)+2*pi;  <span class="comment">%unsigned</span>
+0036 filter  =   [];
+0037 
+0038 <span class="comment">%-------------------------</span>
+0039 <span class="comment">%generate the filters</span>
+0040 <span class="comment">%-------------------------</span>
+0041 <span class="keyword">for</span> t0  =   0:DELTAT:(TSTEPS-1)*DELTAT
+0042      t1     = t0+pi;                                <span class="comment">%for the other lobe</span>
+0043      <span class="comment">%-----------------</span>
+0044      <span class="comment">%first lobe</span>
+0045      <span class="comment">%-----------------</span>
+0046      d          = <a href="#_sub1" class="code" title="subfunction d = angular_distance(th,t0)">angular_distance</a>(th,t0);
+0047      msk        = 1+cos(d*pi/BW); 
+0048      msk(d&gt;BW)  = 0;
+0049      rmsk       = msk;                              <span class="comment">%save first lobe</span>
+0050 
+0051      <span class="comment">%-----------------</span>
+0052      <span class="comment">%second lobe</span>
+0053      <span class="comment">%-----------------</span>
+0054      d          = <a href="#_sub1" class="code" title="subfunction d = angular_distance(th,t0)">angular_distance</a>(th,t1);
+0055      msk        = 1+cos(d*pi/BW); 
+0056      msk(d&gt;BW)  = 0;
+0057      rmsk       = (rmsk+msk);
+0058 
+0059      imagesc(rmsk);pause;
+0060      rmsk   = transpose(rmsk);
+0061      filter = [filter,rmsk(:)];
+0062 <span class="keyword">end</span>;
+0063      <span class="comment">%-----------------</span>
+0064      <span class="comment">%save the filters</span>
+0065      <span class="comment">%-----------------</span>
+0066      angf  = filter;
+0067      eval(sprintf(<span class="string">'save %s angf'</span>,fname));
+0068 
+0069 <span class="comment">%----------------------</span>
+0070 <span class="comment">%write to a C file</span>
+0071 <span class="comment">%----------------------</span>
+0072 fp = fopen(sprintf(<span class="string">'%s.h'</span>,fname),<span class="string">'w'</span>);
+0073 fprintf(fp,<span class="string">'{\n'</span>);
+0074 <span class="keyword">for</span> i = 1:size(filter,2)
+0075     i
+0076     k = 1;
+0077     fprintf(fp,<span class="string">'{'</span>);
+0078     <span class="keyword">for</span> j = 1:size(filter,1)
+0079         fprintf(fp,<span class="string">'%f,'</span>,filter(j,i));
+0080         <span class="keyword">if</span>(k == 32) k=0; fprintf(fp,<span class="string">'\n'</span>); <span class="keyword">end</span>;
+0081         k = k+1;
+0082     <span class="keyword">end</span>;
+0083     fprintf(fp,<span class="string">'},\n'</span>);
+0084 <span class="keyword">end</span>;
+0085 fprintf(fp,<span class="string">'};\n'</span>);
+0086 fclose(fp);
+0087 <span class="comment">%end function radial_filter_bank</span>
+0088 
+0089 <span class="comment">%-----------------------------------------</span>
+0090 <span class="comment">%angular_distance</span>
+0091 <span class="comment">%computes angular distance-acute angle</span>
+0092 <span class="comment">%-----------------------------------------</span>
+0093 <a name="_sub1" href="#_subfunctions" class="code">function d = angular_distance(th,t0)</a>
+0094     d = abs(th-t0);
+0095     d = min(d,2*pi-d);
+0096 <span class="comment">%end function angular_distance</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

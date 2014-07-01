@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of view_orientation_image</title>
+  <meta name="keywords" content="view_orientation_image">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; view_orientation_image.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>view_orientation_image
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function view_orientation_image(o) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">------------------------------------------------------------------------
+view_orientation_image
+Displays the orientation image as a quiver plot
+usage:
+view_orientation(o)
+o - orientation image(obtained by fft_enhance_cubs.m or
+orientation_image_rao.m)
+
+Contact:
+   ssc5@eng.buffalo.edu
+   www.eng.buffalo.edu/~ssc5
+------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%------------------------------------------------------------------------</span>
+0002 <span class="comment">%view_orientation_image</span>
+0003 <span class="comment">%Displays the orientation image as a quiver plot</span>
+0004 <span class="comment">%usage:</span>
+0005 <span class="comment">%view_orientation(o)</span>
+0006 <span class="comment">%o - orientation image(obtained by fft_enhance_cubs.m or</span>
+0007 <span class="comment">%orientation_image_rao.m)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">%Contact:</span>
+0010 <span class="comment">%   ssc5@eng.buffalo.edu</span>
+0011 <span class="comment">%   www.eng.buffalo.edu/~ssc5</span>
+0012 <span class="comment">%------------------------------------------------------------------------</span>
+0013 <a name="_sub0" href="#_subfunctions" class="code">function view_orientation_image(o)</a>
+0014     [h,w]   =   size(o);
+0015     x       =   0:w-1;
+0016     y       =   0:h-1;
+0017     quiver(x,y,sin(o),sin(o)); 
+0018     axis([0 w 0 h]),axis image, axis ij;
+0019 <span class="comment">%end function view_orieintation_image</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

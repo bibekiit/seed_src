@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of FindTheta</title>
+  <meta name="keywords" content="FindTheta">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; FindTheta.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>FindTheta
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function theta = FindTheta(img, x, y, CN) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>	-----Sub functions-------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function theta = FindTheta(img, x, y, CN)</a>
+0002 theta = -1;
+0003 
+0004 <span class="keyword">if</span> (CN == 1)
+0005     <span class="comment">% for ridge ending find the only other white pixel</span>
+0006     <span class="keyword">for</span> i=1:8
+0007         <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, i) == 1)
+0008             <span class="comment">% found only other pixel decide which angle</span>
+0009             <span class="keyword">switch</span> (i)
+0010                 <span class="keyword">case</span> {1, 9}
+0011                     theta = 0; <span class="comment">% current interpretation of theta is in radian</span>
+0012                 <span class="keyword">case</span> 2
+0013                     <span class="comment">% theta = 45;</span>
+0014                     theta = pi / 4;
+0015                 <span class="keyword">case</span> 3
+0016                     <span class="comment">% theta = 90;</span>
+0017                     theta = pi / 2;
+0018                 <span class="keyword">case</span> 4
+0019                     <span class="comment">% theta = 135;</span>
+0020                     theta = 3 * pi / 4;
+0021                 <span class="keyword">case</span> 5
+0022                     <span class="comment">% theta = 180;</span>
+0023                     theta = pi;
+0024                 <span class="keyword">case</span> 6
+0025                     <span class="comment">% theta = 225;</span>
+0026                     theta = 5 * pi / 4;
+0027                 <span class="keyword">case</span> 7
+0028                     <span class="comment">% theta = 270;</span>
+0029                     theta = 3 * pi / 2;
+0030                 <span class="keyword">case</span> 8
+0031                     <span class="comment">% theta = 315;</span>
+0032                     theta = 7 * pi / 4;
+0033             <span class="keyword">end</span> <span class="comment">% switch</span>
+0034         <span class="keyword">end</span> <span class="comment">% if Pxyi = 1</span>
+0035     <span class="keyword">end</span> <span class="comment">% for i</span>
+0036 <span class="keyword">else</span> 
+0037     <span class="comment">% ridge bijection, find single pixel on an axis</span>
+0038     <span class="comment">%</span>
+0039     <span class="comment">%    |   |</span>
+0040     <span class="comment">%    | O | *</span>
+0041     <span class="comment">%    |   | *</span>
+0042 
+0043     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 1)  &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 2) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 8)) ) 
+0044         theta = 0; <span class="comment">% current interpretation of theta is in radian</span>
+0045     <span class="keyword">end</span>
+0046 
+0047 
+0048     <span class="comment">%</span>
+0049     <span class="comment">%  * | * | *</span>
+0050     <span class="comment">%    | O |</span>
+0051     <span class="comment">%    |   | *</span>
+0052 
+0053     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 2) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 1) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 8) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 3) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 4)))
+0054         <span class="comment">% theta = 45;</span>
+0055         theta = pi * 4;
+0056     <span class="keyword">end</span>
+0057 
+0058     <span class="comment">%</span>
+0059     <span class="comment">%  * | * |</span>
+0060     <span class="comment">%    | O |</span>
+0061     <span class="comment">%    |   |</span>
+0062 
+0063     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 3) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 2) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 4)))
+0064         <span class="comment">% theta = 90;</span>
+0065         theta = pi / 2;
+0066     <span class="keyword">end</span>
+0067 
+0068 
+0069     <span class="comment">%</span>
+0070     <span class="comment">%  * |   | *</span>
+0071     <span class="comment">%  * | * |</span>
+0072     <span class="comment">%  * |   |</span>
+0073 
+0074     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 4) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 3) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 2) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 5) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 6)))
+0075         <span class="comment">% theta = 135;</span>
+0076         theta = 3 * pi / 4;
+0077     <span class="keyword">end</span>
+0078 
+0079 
+0080     <span class="comment">%</span>
+0081     <span class="comment">%    |   |</span>
+0082     <span class="comment">%  * | O |</span>
+0083     <span class="comment">%  * |   |</span>
+0084 
+0085     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 5) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 4) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 6)))
+0086         <span class="comment">% theta = 180;</span>
+0087         theta = pi;
+0088     <span class="keyword">end</span>
+0089 
+0090 
+0091     <span class="comment">%</span>
+0092     <span class="comment">%    |   |</span>
+0093     <span class="comment">%    | O |</span>
+0094     <span class="comment">%  * | * | *</span>
+0095 
+0096     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 6) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 4) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 5) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 7) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 8)))
+0097         <span class="comment">% theta = 225;</span>
+0098         theta = 5 * pi / 4;
+0099     <span class="keyword">end</span>
+0100 
+0101 
+0102 
+0103 
+0104     <span class="comment">%</span>
+0105     <span class="comment">%    |   |</span>
+0106     <span class="comment">%    | O |</span>
+0107     <span class="comment">%    | * | *</span>
+0108 
+0109     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 7) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 6) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 8)))
+0110         <span class="comment">% theta = 270;</span>
+0111         theta = 3 * pi / 2;
+0112     <span class="keyword">end</span>
+0113 
+0114 
+0115     <span class="comment">%</span>
+0116     <span class="comment">%    |   |</span>
+0117     <span class="comment">%    | O | *</span>
+0118     <span class="comment">%  * | * | *</span>
+0119 
+0120     <span class="keyword">if</span> (<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 8) &amp;&amp; ~(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 2) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 1) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 7) &amp;&amp; <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, 6)))
+0121         <span class="comment">% theta = 315;</span>
+0122         theta = 7 * pi / 4;
+0123     <span class="keyword">end</span>
+0124 <span class="keyword">end</span>
+0125</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

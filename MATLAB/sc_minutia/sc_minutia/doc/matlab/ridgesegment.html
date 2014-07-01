@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ridgesegment</title>
+  <meta name="keywords" content="ridgesegment">
+  <meta name="description" content="RIDGESEGMENT - Normalises fingerprint image and segments ridge region">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; ridgesegment.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>ridgesegment
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>RIDGESEGMENT - Normalises fingerprint image and segments ridge region</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [normim, mask, maskind] = ridgesegment(im, blksze, thresh) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> RIDGESEGMENT - Normalises fingerprint image and segments ridge region
+
+ Function identifies ridge regions of a fingerprint image and returns a
+ mask identifying this region.  It also normalises the intesity values of
+ the image so that the ridge regions have zero mean, unit standard
+ deviation.
+
+ This function breaks the image up into blocks of size blksze x blksze and
+ evaluates the standard deviation in each region.  If the standard
+ deviation is above the threshold it is deemed part of the fingerprint.
+ Note that the image is normalised to have zero mean, unit standard
+ deviation prior to performing this process so that the threshold you
+ specify is relative to a unit standard deviation.
+
+ Usage:   [normim, mask, maskind] = ridgesegment(im, blksze, thresh)
+
+ Arguments:   im     - Fingerprint image to be segmented.
+              blksze - Block size over which the the standard
+                       deviation is determined (try a value of 16).
+              thresh - Threshold of standard deviation to decide if a
+                       block is a ridge region (Try a value 0.1 - 0.2)
+
+ Returns:     normim - Image where the ridge regions are renormalised to
+                       have zero mean, unit standard deviation.
+              mask   - Mask indicating ridge-like regions of the image, 
+                       0 for non ridge regions, 1 for ridge regions.
+              maskind - Vector of indices of locations within the mask. 
+
+ Suggested values for a 500dpi fingerprint image:
+
+   [normim, mask, maskind] = ridgesegment(im, 16, 0.1)
+
+ See also: <a href="ridgeorient.html" class="code" title="function [orientim, reliability] =ridgeorient(im, gradientsigma, blocksigma, orientsmoothsigma)">RIDGEORIENT</a>, <a href="ridgefreq.html" class="code" title="function [freq, medianfreq] = ridgefreq(im, mask, orient, blksze, windsze,minWaveLength, maxWaveLength)">RIDGEFREQ</a>, <a href="ridgefilter.html" class="code" title="function newim = ridgefilter(im, orient, freq, kx, ky, showfilter)">RIDGEFILTER</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="im.html" class="code" title="function im(X,vec);">im</a>	im(X) or im(X,[minval maxval])</li><li><a href="normalise.html" class="code" title="function n = normalise(im, reqmean, reqvar)">normalise</a>	NORMALISE - Normalises image values to 0-1, or to desired mean and variance</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="testfin.html" class="code" title="function [newim, binim, mask, reliability, orientim] =  testfin(im)">testfin</a>	TESTFIN</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% RIDGESEGMENT - Normalises fingerprint image and segments ridge region</span>
+0002 <span class="comment">%</span>
+0003 <span class="comment">% Function identifies ridge regions of a fingerprint image and returns a</span>
+0004 <span class="comment">% mask identifying this region.  It also normalises the intesity values of</span>
+0005 <span class="comment">% the image so that the ridge regions have zero mean, unit standard</span>
+0006 <span class="comment">% deviation.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This function breaks the image up into blocks of size blksze x blksze and</span>
+0009 <span class="comment">% evaluates the standard deviation in each region.  If the standard</span>
+0010 <span class="comment">% deviation is above the threshold it is deemed part of the fingerprint.</span>
+0011 <span class="comment">% Note that the image is normalised to have zero mean, unit standard</span>
+0012 <span class="comment">% deviation prior to performing this process so that the threshold you</span>
+0013 <span class="comment">% specify is relative to a unit standard deviation.</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Usage:   [normim, mask, maskind] = ridgesegment(im, blksze, thresh)</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Arguments:   im     - Fingerprint image to be segmented.</span>
+0018 <span class="comment">%              blksze - Block size over which the the standard</span>
+0019 <span class="comment">%                       deviation is determined (try a value of 16).</span>
+0020 <span class="comment">%              thresh - Threshold of standard deviation to decide if a</span>
+0021 <span class="comment">%                       block is a ridge region (Try a value 0.1 - 0.2)</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Returns:     normim - Image where the ridge regions are renormalised to</span>
+0024 <span class="comment">%                       have zero mean, unit standard deviation.</span>
+0025 <span class="comment">%              mask   - Mask indicating ridge-like regions of the image,</span>
+0026 <span class="comment">%                       0 for non ridge regions, 1 for ridge regions.</span>
+0027 <span class="comment">%              maskind - Vector of indices of locations within the mask.</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% Suggested values for a 500dpi fingerprint image:</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">%   [normim, mask, maskind] = ridgesegment(im, 16, 0.1)</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% See also: RIDGEORIENT, RIDGEFREQ, RIDGEFILTER</span>
+0034 
+0035 <span class="comment">% Peter Kovesi</span>
+0036 <span class="comment">% School of Computer Science &amp; Software Engineering</span>
+0037 <span class="comment">% The University of Western Australia</span>
+0038 <span class="comment">% pk at csse uwa edu au</span>
+0039 <span class="comment">% http://www.csse.uwa.edu.au/~pk</span>
+0040 <span class="comment">%</span>
+0041 <span class="comment">% January 2005</span>
+0042 
+0043 
+0044 <a name="_sub0" href="#_subfunctions" class="code">function [normim, mask, maskind] = ridgesegment(im, blksze, thresh)</a>
+0045     
+0046     <a href="im.html" class="code" title="function im(X,vec);">im</a> = <a href="normalise.html" class="code" title="function n = normalise(im, reqmean, reqvar)">normalise</a>(<a href="im.html" class="code" title="function im(X,vec);">im</a>,0,1);  <span class="comment">% normalise to have zero mean, unit std dev</span>
+0047     
+0048     fun = inline(<span class="string">'std(x(:))*ones(size(x))'</span>);
+0049     
+0050     stddevim = blkproc(<a href="im.html" class="code" title="function im(X,vec);">im</a>, [blksze blksze], fun);
+0051     
+0052     mask = stddevim &gt; thresh;
+0053     maskind = find(mask);
+0054     
+0055     <span class="comment">% Renormalise image so that the *ridge regions* have zero mean, unit</span>
+0056     <span class="comment">% standard deviation.</span>
+0057     <a href="im.html" class="code" title="function im(X,vec);">im</a> = <a href="im.html" class="code" title="function im(X,vec);">im</a> - mean(<a href="im.html" class="code" title="function im(X,vec);">im</a>(maskind));
+0058     normim = <a href="im.html" class="code" title="function im(X,vec);">im</a>/std(<a href="im.html" class="code" title="function im(X,vec);">im</a>(maskind));    
+0059</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

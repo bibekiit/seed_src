@@ -1,0 +1,279 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of partest</title>
+  <meta name="keywords" content="partest">
+  <meta name="description" content="This function calculate the performance, based on Bayes theorem, of a">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; partest.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>partest
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>This function calculate the performance, based on Bayes theorem, of a</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function partest(x) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">This function calculate the performance, based on Bayes theorem, of a
+clinical test.
+
+ Syntax:     PARTEST(X)
+      
+     Input:
+           X is the following 2x2 matrix.
+
+....................Unhealthy.....Healthy 
+                    _______________________
+Positive Test      |   True    |  False    |
+                   | positives | positives |
+                   |___________|___________|
+                   |  False    |   True    |
+Negative Test      | negatives | negatives |
+                   |___________|___________|
+
+     Outputs:
+           - Prevalence of disease
+           - Test Sensibility 
+           - Test Specificity
+           - False positive and negative proportions
+           - Youden's Index
+           - Number needed to Diagnose (NDD)
+           - Discriminant Power
+           - Test Accuracy
+           - Mis-classification Rate
+           - Positive predictivity
+           - Negative predictivity
+           - Positive Likelihood Ratio
+           - Negative Likelihood Ratio
+           - Test bias
+           - Diagnostic odds ratio
+           - Error odds ratio
+
+      Example: 
+
+           X=[80 3; 5 20];
+
+           Calling on Matlab the function: partest(X)
+
+           Answer is:
+
+           Prevalence: 78.7037%
+           Sensibility (probability that test is positive on unhealthy subject): 94.1176%
+           False positive proportion: 10%
+           Specificity (probability that test is negative on healthy subject): 86.9565%
+           False negative proportion: 2%
+           Youden's Index (a perfect test would have a Youden's index of +1): 0.81074
+           Number needed to Diagnose (NDD): 1
+           Discriminant Power: 2.9
+               A test with a discriminant value of 1 is not effective in discriminating between affected and unaffected individuals.
+               A test with a discriminant value of 3 is effective in discriminating between affected and unaffected individuals.
+           Accuracy or Potency: 92.5926%
+           Mis-classification Rate: 7.4074%
+           Predictivity of positive test (probability that a subject is unhealthy when test is positive): 96.3855%
+           Predictivity of negative test (probability that a subject is healthy when test is negative): 80%
+           Positive Likelihood Ratio: 7.2157
+           Moderate increase in possibility of disease presence
+           Negative Likelihood Ratio: 0.067647
+           Large (often conclusive) increase in possibility of disease absence
+           Test bias: 0.97647
+           Test underestimate the phenomenon
+           Diagnostic odds ratio: 106.6667
+           Error odds ratio: 2.4
+
+           Created by Giuseppe Cardillo
+           giuseppe.cardillo-edta@poste.it
+
+ To cite this file, this would be an appropriate format:
+ Cardillo G. (2006). Clinical test performance: the performance of a
+ clinical test based on the Bayes theorem. 
+ http://www.mathworks.com/matlabcentral/fileexchange/12705</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="roc.html" class="code" title="function roc(x,y)">roc</a>	ROC - Receiver Operating Characteristics.</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function dlr(lr)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function partest(x)</a>
+0002 <span class="comment">%This function calculate the performance, based on Bayes theorem, of a</span>
+0003 <span class="comment">%clinical test.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:     PARTEST(X)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%     Input:</span>
+0008 <span class="comment">%           X is the following 2x2 matrix.</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%....................Unhealthy.....Healthy</span>
+0011 <span class="comment">%                    _______________________</span>
+0012 <span class="comment">%Positive Test      |   True    |  False    |</span>
+0013 <span class="comment">%                   | positives | positives |</span>
+0014 <span class="comment">%                   |___________|___________|</span>
+0015 <span class="comment">%                   |  False    |   True    |</span>
+0016 <span class="comment">%Negative Test      | negatives | negatives |</span>
+0017 <span class="comment">%                   |___________|___________|</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">%     Outputs:</span>
+0020 <span class="comment">%           - Prevalence of disease</span>
+0021 <span class="comment">%           - Test Sensibility</span>
+0022 <span class="comment">%           - Test Specificity</span>
+0023 <span class="comment">%           - False positive and negative proportions</span>
+0024 <span class="comment">%           - Youden's Index</span>
+0025 <span class="comment">%           - Number needed to Diagnose (NDD)</span>
+0026 <span class="comment">%           - Discriminant Power</span>
+0027 <span class="comment">%           - Test Accuracy</span>
+0028 <span class="comment">%           - Mis-classification Rate</span>
+0029 <span class="comment">%           - Positive predictivity</span>
+0030 <span class="comment">%           - Negative predictivity</span>
+0031 <span class="comment">%           - Positive Likelihood Ratio</span>
+0032 <span class="comment">%           - Negative Likelihood Ratio</span>
+0033 <span class="comment">%           - Test bias</span>
+0034 <span class="comment">%           - Diagnostic odds ratio</span>
+0035 <span class="comment">%           - Error odds ratio</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">%      Example:</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">%           X=[80 3; 5 20];</span>
+0040 <span class="comment">%</span>
+0041 <span class="comment">%           Calling on Matlab the function: partest(X)</span>
+0042 <span class="comment">%</span>
+0043 <span class="comment">%           Answer is:</span>
+0044 <span class="comment">%</span>
+0045 <span class="comment">%           Prevalence: 78.7037%</span>
+0046 <span class="comment">%           Sensibility (probability that test is positive on unhealthy subject): 94.1176%</span>
+0047 <span class="comment">%           False positive proportion: 10%</span>
+0048 <span class="comment">%           Specificity (probability that test is negative on healthy subject): 86.9565%</span>
+0049 <span class="comment">%           False negative proportion: 2%</span>
+0050 <span class="comment">%           Youden's Index (a perfect test would have a Youden's index of +1): 0.81074</span>
+0051 <span class="comment">%           Number needed to Diagnose (NDD): 1</span>
+0052 <span class="comment">%           Discriminant Power: 2.9</span>
+0053 <span class="comment">%               A test with a discriminant value of 1 is not effective in discriminating between affected and unaffected individuals.</span>
+0054 <span class="comment">%               A test with a discriminant value of 3 is effective in discriminating between affected and unaffected individuals.</span>
+0055 <span class="comment">%           Accuracy or Potency: 92.5926%</span>
+0056 <span class="comment">%           Mis-classification Rate: 7.4074%</span>
+0057 <span class="comment">%           Predictivity of positive test (probability that a subject is unhealthy when test is positive): 96.3855%</span>
+0058 <span class="comment">%           Predictivity of negative test (probability that a subject is healthy when test is negative): 80%</span>
+0059 <span class="comment">%           Positive Likelihood Ratio: 7.2157</span>
+0060 <span class="comment">%           Moderate increase in possibility of disease presence</span>
+0061 <span class="comment">%           Negative Likelihood Ratio: 0.067647</span>
+0062 <span class="comment">%           Large (often conclusive) increase in possibility of disease absence</span>
+0063 <span class="comment">%           Test bias: 0.97647</span>
+0064 <span class="comment">%           Test underestimate the phenomenon</span>
+0065 <span class="comment">%           Diagnostic odds ratio: 106.6667</span>
+0066 <span class="comment">%           Error odds ratio: 2.4</span>
+0067 <span class="comment">%</span>
+0068 <span class="comment">%           Created by Giuseppe Cardillo</span>
+0069 <span class="comment">%           giuseppe.cardillo-edta@poste.it</span>
+0070 <span class="comment">%</span>
+0071 <span class="comment">% To cite this file, this would be an appropriate format:</span>
+0072 <span class="comment">% Cardillo G. (2006). Clinical test performance: the performance of a</span>
+0073 <span class="comment">% clinical test based on the Bayes theorem.</span>
+0074 <span class="comment">% http://www.mathworks.com/matlabcentral/fileexchange/12705</span>
+0075 
+0076 <span class="comment">%Input Error handling</span>
+0077 [r,c] = size(x);
+0078 <span class="keyword">if</span> (r ~= 2 || c ~= 2)
+0079     error(<span class="string">'Warning: PARTEST requires a 2x2 input matrix'</span>)
+0080 <span class="keyword">end</span>
+0081 clear r c <span class="comment">%clear unnecessary variables</span>
+0082 
+0083 s1=sum(x); <span class="comment">%columns sum</span>
+0084 s2=sum(x,2); <span class="comment">%rows sums</span>
+0085 tot=sum(x(:)); <span class="comment">%numbers of elements</span>
+0086 d=diag(x); <span class="comment">%true positives and true negatives</span>
+0087 pr=(s1(1)/tot)*100; <span class="comment">%Prevalence</span>
+0088 a=d./s1'; <span class="comment">%Sensibility and Specificity</span>
+0089 dp=1-a; <span class="comment">%false proportions</span>
+0090 dpwr=(realsqrt(3)/pi)*prod(log(a./(1-a))); <span class="comment">%Discriminant power</span>
+0091 acc=trace(x)/tot; <span class="comment">%Accuracy</span>
+0092 mcr=1-acc; <span class="comment">%Mis-classification rate</span>
+0093 b=d./s2; <span class="comment">%Positive and Negative predictivity</span>
+0094 plr=a(1)/(1-a(2)); <span class="comment">%Positive Likelihood Ratio</span>
+0095 nlr=(1-a(1))/a(2); <span class="comment">%Negative Likelihood Ratio</span>
+0096 c=s2(1)/s1(1); <span class="comment">%Test Bias</span>
+0097 J=sum(a)-1; <span class="comment">%Youden's index</span>
+0098 NDD=round(1/J); <span class="comment">%Number needed to Diagnose (NDD)</span>
+0099 f=a./d;
+0100 EOR=f(1)/f(2); <span class="comment">%Error odds ratio</span>
+0101 DOR=f(1)/(1/f(2)); <span class="comment">%Diagnostic odds ratio</span>
+0102 
+0103 <span class="comment">%display results</span>
+0104 fprintf(<span class="string">'Prevalence: %0.1f%%\n'</span>,pr)
+0105 fprintf(<span class="string">'Sensibility (probability that test is positive on unhealthy subject): %0.1f%%\n'</span>,a(1)*100)
+0106 fprintf(<span class="string">'False positive proportion: %0.1f%%\n'</span>,dp(1)*100)
+0107 fprintf(<span class="string">'Specificity (probability that test is negative on healthy subject): %0.1f%%\n'</span>,a(2)*100)
+0108 fprintf(<span class="string">'False negative proportion: %0.1f%%\n'</span>, dp(2)*100)
+0109 fprintf(<span class="string">'Youden''s Index (a perfect test would have a Youden index of +1): %0.4f\n'</span>, J)
+0110 fprintf(<span class="string">'Number needed to Diagnose (NDD): %0.1f\n'</span>,NDD);
+0111 fprintf(<span class="string">'Discriminant Power: %0.1f\n'</span>,dpwr)
+0112 disp([blanks(5) <span class="string">'A test with a discriminant value of 1 is not effective in discriminating between affected and unaffected individuals.'</span>])
+0113 disp([blanks(5) <span class="string">'A test with a discriminant value of 3 is effective in discriminating between affected and unaffected individuals.'</span>])
+0114 fprintf(<span class="string">'Accuracy or Potency: %0.1f%%\n'</span>, acc*100)
+0115 fprintf(<span class="string">'Mis-classification Rate: %0.1f%%\n'</span>, mcr*100)
+0116 fprintf(<span class="string">'Predictivity of positive test (probability that a subject is unhealthy when test is positive): %0.1f%%\n'</span>, b(1)*100)
+0117 fprintf(<span class="string">'Predictivity of negative test (probability that a subject is healthy when test is negative): %0.1f%%\n'</span>, b(2)*100)
+0118 fprintf(<span class="string">'Positive Likelihood Ratio: %0.1f\n'</span>, plr)
+0119 <a href="#_sub1" class="code" title="subfunction dlr(lr) ">dlr</a>(plr)
+0120 fprintf(<span class="string">'Negative Likelihood Ratio: %0.1f\n'</span>, nlr)
+0121 <a href="#_sub1" class="code" title="subfunction dlr(lr) ">dlr</a>(nlr)
+0122 fprintf(<span class="string">'Test bias: %0.1f\n'</span>,c)
+0123 <span class="keyword">if</span> c(1)&gt;1
+0124     disp(<span class="string">'Test overestimates the phenomenon'</span>)
+0125 <span class="keyword">elseif</span> c(1)&lt;1
+0126     disp(<span class="string">'Test underestimates the phenomenon'</span>)
+0127 <span class="keyword">else</span>
+0128     disp(<span class="string">'There is not test bias'</span>)
+0129 <span class="keyword">end</span>
+0130 fprintf(<span class="string">'Diagnostic odds ratio: %0.1f\n'</span>,DOR)
+0131 fprintf(<span class="string">'Error odds ratio: %0.1f\n'</span>,EOR)
+0132 <span class="keyword">return</span>
+0133 
+0134 <a name="_sub1" href="#_subfunctions" class="code">function dlr(lr) </a><span class="comment">%Likelihood dialog</span>
+0135 <span class="keyword">if</span> lr==1
+0136     disp(<span class="string">'Test is not suggestive of the presence/absence of disease'</span>)
+0137     <span class="keyword">return</span>
+0138 <span class="keyword">end</span>
+0139 
+0140 <span class="keyword">if</span> lr&gt;10 || lr&lt;0.1
+0141     p1=<span class="string">'Large (often conclusive)'</span>;
+0142 <span class="keyword">elseif</span> (lr&gt;5 &amp;&amp; lr&lt;=10) || (lr&gt;0.1 &amp;&amp; lr&lt;=0.2)
+0143     p1=<span class="string">'Moderate'</span>;
+0144 <span class="keyword">elseif</span> (lr&gt;2 &amp;&amp; lr&lt;=5) || (lr&gt;0.2 &amp;&amp; lr&lt;=0.5)
+0145     p1=<span class="string">'Low'</span>;
+0146 <span class="keyword">elseif</span> (lr&gt;1 &amp;&amp; lr&lt;=2) || (lr&gt;0.5 &amp;&amp; lr&lt;=1)
+0147     p1=<span class="string">'Poor'</span>;
+0148 <span class="keyword">end</span>
+0149 
+0150 p2=<span class="string">' increase in possibility of disease '</span>;
+0151 
+0152 <span class="keyword">if</span> lr&gt;1
+0153     p3=<span class="string">'presence'</span>;
+0154 <span class="keyword">elseif</span> lr&lt;1
+0155     p3=<span class="string">'absence'</span>;
+0156 <span class="keyword">end</span>
+0157 disp([p1 p2 p3])
+0158 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

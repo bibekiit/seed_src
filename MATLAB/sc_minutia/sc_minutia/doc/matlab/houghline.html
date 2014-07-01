@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of houghline</title>
+  <meta name="keywords" content="houghline">
+  <meta name="description" content="HOUGHLINE - detects lines in a binary image using common computer vision operation known as the Hough Transform.">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; houghline.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>houghline
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>HOUGHLINE - detects lines in a binary image using common computer vision operation known as the Hough Transform.</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [pdetect,tetadetect,Accumulator] = houghline(Imbinary,pstep,tetastep,thresh) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">HOUGHLINE - detects lines in a binary image using common computer vision operation known as the Hough Transform.
+
+Comments:
+       Function uses Standard Hough Transform to detect Lines in a binary image.
+       According to the Hough Transform, each pixel in image space
+       corresponds to a line in Hough space and vise versa.This function uses
+       polar representation of lines i.e. x*cos(teta)+y*sin(teta)=p to detect 
+       lines in binary image. upper left corner of image is the origin of polar coordinate
+       system.
+
+Usage: [pdetect,tetadetect,Accumulator] = houghline(Imbinary,pstep,tetastep,thresh)
+
+Arguments:
+       Imbinary - a binary image. image pixels that have value equal to 1 are
+                  interested pixels for HOUGHLINE function.
+       pstep    - interval for radius of lines in polar coordinates.
+       tetastep - interval for angle of lines in polar coordinates.
+       thresh   - a threshold value that determines the minimum number of
+                  pixels that belong to a line in image space. threshold must 
+                  be bigger than or equal to 3(default).
+
+Returns:
+       pdetect     - a vactor that contains radius of detected lines in
+                     polar coordinates system.
+       tetadetect  - a vector that contains angle of detcted lines in
+                     polar coordinates system.
+       Accumulator - the accumulator array in Hough space.
+
+Written by :
+       Amin Sarafraz
+       Photogrammetry &amp; Computer Vision Devision
+       Geomatics Department,Faculty of Engineering
+       University of Tehran,Iran
+       sarafraz@geomatics.ut.ac.ir
+
+May 5,2004         - Original version
+November 24,2004   - Modified version,slightly faster and better performance.</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>	-----Sub functions-------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [pdetect,tetadetect,Accumulator] = houghline(Imbinary,pstep,tetastep,thresh)</a>
+0002 <span class="comment">%HOUGHLINE - detects lines in a binary image using common computer vision operation known as the Hough Transform.</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">%Comments:</span>
+0005 <span class="comment">%       Function uses Standard Hough Transform to detect Lines in a binary image.</span>
+0006 <span class="comment">%       According to the Hough Transform, each pixel in image space</span>
+0007 <span class="comment">%       corresponds to a line in Hough space and vise versa.This function uses</span>
+0008 <span class="comment">%       polar representation of lines i.e. x*cos(teta)+y*sin(teta)=p to detect</span>
+0009 <span class="comment">%       lines in binary image. upper left corner of image is the origin of polar coordinate</span>
+0010 <span class="comment">%       system.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%Usage: [pdetect,tetadetect,Accumulator] = houghline(Imbinary,pstep,tetastep,thresh)</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">%Arguments:</span>
+0015 <span class="comment">%       Imbinary - a binary image. image pixels that have value equal to 1 are</span>
+0016 <span class="comment">%                  interested pixels for HOUGHLINE function.</span>
+0017 <span class="comment">%       pstep    - interval for radius of lines in polar coordinates.</span>
+0018 <span class="comment">%       tetastep - interval for angle of lines in polar coordinates.</span>
+0019 <span class="comment">%       thresh   - a threshold value that determines the minimum number of</span>
+0020 <span class="comment">%                  pixels that belong to a line in image space. threshold must</span>
+0021 <span class="comment">%                  be bigger than or equal to 3(default).</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">%Returns:</span>
+0024 <span class="comment">%       pdetect     - a vactor that contains radius of detected lines in</span>
+0025 <span class="comment">%                     polar coordinates system.</span>
+0026 <span class="comment">%       tetadetect  - a vector that contains angle of detcted lines in</span>
+0027 <span class="comment">%                     polar coordinates system.</span>
+0028 <span class="comment">%       Accumulator - the accumulator array in Hough space.</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">%Written by :</span>
+0031 <span class="comment">%       Amin Sarafraz</span>
+0032 <span class="comment">%       Photogrammetry &amp; Computer Vision Devision</span>
+0033 <span class="comment">%       Geomatics Department,Faculty of Engineering</span>
+0034 <span class="comment">%       University of Tehran,Iran</span>
+0035 <span class="comment">%       sarafraz@geomatics.ut.ac.ir</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">%May 5,2004         - Original version</span>
+0038 <span class="comment">%November 24,2004   - Modified version,slightly faster and better performance.</span>
+0039                           
+0040 
+0041 <span class="keyword">if</span> nargin == 3
+0042     thresh = 3;
+0043 <span class="keyword">elseif</span> thresh &lt; 3
+0044     error(<span class="string">'threshold must be bigger than or equal to 3'</span>)
+0045     <span class="keyword">return</span>;
+0046 <span class="keyword">end</span>
+0047 
+0048 <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a> = 1:pstep:sqrt((size(Imbinary,1))^2+(size(Imbinary,2))^2);
+0049 teta = 0:tetastep:180-tetastep;
+0050 
+0051 <span class="comment">%Voting</span>
+0052 Accumulator = zeros(length(<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>),length(teta));
+0053 [yIndex xIndex] = find(Imbinary);
+0054 <span class="keyword">for</span> cnt = 1:size(xIndex)
+0055     Indteta = 0;
+0056     <span class="keyword">for</span> tetai = teta*pi/180
+0057         Indteta = Indteta+1;
+0058         roi = xIndex(cnt)*cos(tetai)+yIndex(cnt)*sin(tetai);
+0059         <span class="keyword">if</span> roi &gt;= 1 &amp; roi &lt;= <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(end)
+0060             temp = abs(roi-<a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>);
+0061             mintemp = min(temp);
+0062             Indp = find(temp == mintemp);
+0063             Indp = Indp(1);
+0064             Accumulator(Indp,Indteta) = Accumulator(Indp,Indteta)+1;
+0065         <span class="keyword">end</span>
+0066     <span class="keyword">end</span>
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">% Finding local maxima in Accumulator</span>
+0070 AccumulatorbinaryMax = imregionalmax(Accumulator);
+0071 [Potential_p Potential_teta] = find(AccumulatorbinaryMax == 1);
+0072 Accumulatortemp = Accumulator - thresh;
+0073 pdetect = [];tetadetect = [];
+0074 <span class="keyword">for</span> cnt = 1:length(Potential_p)
+0075     <span class="keyword">if</span> Accumulatortemp(Potential_p(cnt),Potential_teta(cnt)) &gt;= 0
+0076         pdetect = [pdetect;Potential_p(cnt)];
+0077         tetadetect = [tetadetect;Potential_teta(cnt)];
+0078     <span class="keyword">end</span>
+0079 <span class="keyword">end</span>
+0080 
+0081 <span class="comment">% Calculation of detected lines parameters(Radius &amp; Angle).</span>
+0082 pdetect = pdetect * pstep;
+0083 tetadetect = tetadetect *tetastep - tetastep;</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

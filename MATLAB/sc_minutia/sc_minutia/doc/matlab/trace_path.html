@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of trace_path</title>
+  <meta name="keywords" content="trace_path">
+  <meta name="description" content="call with thinned, index, minutiae list, x">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; trace_path.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>trace_path
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>call with thinned, index, minutiae list, x</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [img_n] = trace_path(img, m_list, path_len) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> call with thinned, index, minutiae list, x
+Filters</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>	-----Sub functions-------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="extract_finger.html" class="code" title="function [ret] = extract_finger(filename)">extract_finger</a>	Author: Joshua Abraham</li><li><a href="figures.html" class="code" title="function [ret] = figures(f1, f2)">figures</a>	Bibliography</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 
+0002 <span class="comment">% call with thinned, index, minutiae list, x</span>
+0003 <span class="comment">%Filters</span>
+0004 <a name="_sub0" href="#_subfunctions" class="code">function [img_n] = trace_path(img, m_list, path_len)</a>
+0005 
+0006  img_n = zeros(size(img));  
+0007  <span class="keyword">for</span> index=1:size(m_list,1)
+0008    x = m_list(index, 1);
+0009    y = m_list(index, 2);
+0010    CN = m_list(index, 3);
+0011    progress = 1;
+0012  
+0013    res = index;
+0014    img_n(y,x)=1;
+0015 
+0016    pax = 0; pay=0; pbx = 0; pby=0; pcx = 0; pcy=0;
+0017    pao = 0; pbo = 0; pco = 0;      <span class="comment">%1-8 position of 3x3 square around minutia</span>
+0018    
+0019    <span class="keyword">for</span> i = 1:8
+0020          [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, i);
+0021          [tb, xb, yb] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, x, y, i+1);
+0022          <span class="keyword">if</span> (ta &gt; tb) 
+0023            <span class="keyword">if</span> pao == 0
+0024               <span class="keyword">if</span> i &lt; 5
+0025                  pao = 4 + i;
+0026               <span class="keyword">else</span>
+0027                  pao = mod(4 + i, 9) + 1;
+0028               <span class="keyword">end</span>
+0029               pax = xa;
+0030               pay = ya;
+0031            <span class="keyword">elseif</span> pbo == 0
+0032               <span class="keyword">if</span> i &lt; 5
+0033                  pbo = 4 + i;
+0034               <span class="keyword">else</span>
+0035                  pbo = mod(4 + i, 9) + 1;
+0036               <span class="keyword">end</span>
+0037               pbx = xa;
+0038               pby = ya;
+0039            <span class="keyword">else</span>
+0040               <span class="keyword">if</span> i &lt; 5
+0041                  pco = 4 + i;
+0042               <span class="keyword">else</span>
+0043                  pco = mod(4 + i, 9) + 1;
+0044               <span class="keyword">end</span>
+0045               pcx = xa;
+0046               pcy = ya;
+0047            <span class="keyword">end</span>   
+0048          <span class="keyword">end</span>
+0049    <span class="keyword">end</span>
+0050 
+0051 
+0052    <span class="keyword">while</span> ( progress &lt; path_len) 
+0053       <span class="keyword">if</span> pax == 0
+0054          <span class="keyword">break</span>
+0055       <span class="keyword">end</span>
+0056       img_n(pay,pax)=1; 
+0057       <span class="keyword">if</span> pbx ~= 0
+0058         img_n(pby,pbx)=1; 
+0059       <span class="keyword">end</span>
+0060       <span class="keyword">if</span> pcx ~= 0
+0061         img_n(pcy,pcx)=1; 
+0062       <span class="keyword">end</span>
+0063 
+0064       progress = progress + 1;
+0065 
+0066 
+0067 
+0068       <span class="keyword">if</span> pao ~= 0
+0069           <span class="keyword">for</span> i = 1:8
+0070              <span class="keyword">if</span> i == pao
+0071                 <span class="keyword">continue</span>;
+0072              <span class="keyword">end</span>
+0073 
+0074              [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pax, pay, i);
+0075 
+0076              <span class="keyword">if</span> ta == 1 &amp;&amp; img_n(ya,xa) ~= 1
+0077                 <span class="keyword">if</span> i &lt; 5
+0078                    pao = 4 + i;
+0079                 <span class="keyword">else</span>
+0080                    pao = mod(4 + i, 9) + 1;
+0081                 <span class="keyword">end</span>
+0082                 pax = xa;
+0083                 pay = ya;
+0084                 <span class="keyword">break</span>;
+0085              <span class="keyword">end</span>
+0086           <span class="keyword">end</span>
+0087       <span class="keyword">end</span>
+0088 
+0089       <span class="keyword">if</span> pbo ~= 0
+0090           <span class="keyword">for</span> i = 1:8
+0091              <span class="keyword">if</span> i == pbo
+0092                 <span class="keyword">continue</span>;
+0093              <span class="keyword">end</span>
+0094 
+0095              [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pbx, pby, i);
+0096 
+0097              <span class="keyword">if</span> ta == 1 &amp;&amp; img_n(ya,xa) ~= 1 
+0098                 <span class="keyword">if</span> i &lt; 5
+0099                    pbo = 4 + i;
+0100                 <span class="keyword">else</span>
+0101                    pbo = mod(4 + i, 9) + 1;
+0102                 <span class="keyword">end</span>
+0103                 pbx = xa;
+0104                 pby = ya;
+0105                 <span class="keyword">break</span>;
+0106              <span class="keyword">end</span>
+0107           <span class="keyword">end</span>
+0108       <span class="keyword">end</span>
+0109 
+0110       <span class="keyword">if</span> pco ~= 0
+0111           <span class="keyword">for</span> i = 1:8
+0112                <span class="keyword">if</span> i == pco
+0113                   <span class="keyword">continue</span>;
+0114                <span class="keyword">end</span>
+0115   
+0116                [ta, xa, ya] = <a href="p.html" class="code" title="function [j,X, Y] = p(img, x, y, i)">p</a>(img, pcx, pcy, i);
+0117 
+0118                <span class="keyword">if</span> ta == 1 &amp;&amp; img_n(ya,xa) ~= 1
+0119                   <span class="keyword">if</span> i &lt; 5
+0120                      pco = 4 + i;
+0121                   <span class="keyword">else</span>
+0122                      pco = mod(4 + i, 9) + 1;
+0123                   <span class="keyword">end</span>
+0124   
+0125                   pcx = xa;
+0126                   pcy = ya;
+0127                   <span class="keyword">break</span>;
+0128                <span class="keyword">end</span>
+0129           <span class="keyword">end</span>
+0130       <span class="keyword">end</span>
+0131    <span class="keyword">end</span>
+0132  <span class="keyword">end</span>
+0133 
+0134 
+0135 
+0136 
+0137</pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

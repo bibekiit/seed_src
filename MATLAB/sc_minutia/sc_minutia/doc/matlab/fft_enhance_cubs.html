@@ -1,0 +1,343 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fft_enhance_cubs</title>
+  <meta name="keywords" content="fft_enhance_cubs">
+  <meta name="description" content="--------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; fft_enhance_cubs.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>fft_enhance_cubs
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>--------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [cimg, oimg,fimg,bwimg,eimg,enhimg] =  fft_enhance_cubs(img, BLKSZ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">--------------------------------------------------------------------------
+fft_enhance_cubs
+enhances the fingerprint image
+syntax:
+[oimg,fimg,bwimg,eimg,enhimg] =  fft_enhance_cubs(img, BLKSZ)
+oimg -  [OUT] block orientation image(can be viewed using
+        view_orientation_image.m)
+fimg  - [OUT] block frequency image(indicates ridge spacing)
+bwimg - [OUT] shows angular bandwidth image(filter bandwidth adapts near the
+        singular points)
+eimg  - [OUT] energy image. Indicates the 'ridgeness' of a block (can be 
+        used for fingerprint segmentation)
+enhimg- [OUT] enhanced image
+img   - [IN]  input fingerprint image (HAS to be of DOUBLE type)
+Contact:
+   ssc5@eng.buffalo.edu
+   www.eng.buffalo.edu/~ssc5
+Reference:
+S. Chikkerur,C. Wu and Govindaraju, &quot;A Systematic approach for 
+feature extraction in fingerprint images&quot;,ICBA 2004
+--------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="compute_coherence.html" class="code" title="function [cimg] = compute_coherence(oimg)">compute_coherence</a>	------------------------------------------------------------------------</li><li><a href="smoothen_frequency_image.html" class="code" title="function nfimg = smoothen_frequency_image(fimg,RLOW,RHIGH,diff_cycles)">smoothen_frequency_image</a>	------------------------------------------------------------------------</li><li><a href="smoothen_orientation_image.html" class="code" title="function noimg = smoothen_orientation_image(oimg)">smoothen_orientation_image</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="enhance_images.html" class="code" title="">enhance_images</a>	Bibliography</li><li><a href="extract_finger.html" class="code" title="function [ret] = extract_finger(filename)">extract_finger</a>	Author: Joshua Abraham</li><li><a href="figures.html" class="code" title="function [ret] = figures(f1, f2)">figures</a>	Bibliography</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function y = raised_cosine(nBlkSz,nOvrlp)</a></li><li><a href="#_sub2" class="code">function w = raised_cosine_window(blksz,ovrlp)</a></li><li><a href="#_sub3" class="code">function r = get_angular_filter(t0,bw,angf_pi_4,angf_pi_2)</a></li><li><a href="#_sub4" class="code">function bwimg = get_angular_bw_image(c)</a></li><li><a href="#_sub5" class="code">function mth = compute_mean_angle(dEnergy,th)</a></li><li><a href="#_sub6" class="code">function mr = compute_mean_frequency(dEnergy,r)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%--------------------------------------------------------------------------</span>
+0002 <span class="comment">%fft_enhance_cubs</span>
+0003 <span class="comment">%enhances the fingerprint image</span>
+0004 <span class="comment">%syntax:</span>
+0005 <span class="comment">%[oimg,fimg,bwimg,eimg,enhimg] =  fft_enhance_cubs(img, BLKSZ)</span>
+0006 <span class="comment">%oimg -  [OUT] block orientation image(can be viewed using</span>
+0007 <span class="comment">%        view_orientation_image.m)</span>
+0008 <span class="comment">%fimg  - [OUT] block frequency image(indicates ridge spacing)</span>
+0009 <span class="comment">%bwimg - [OUT] shows angular bandwidth image(filter bandwidth adapts near the</span>
+0010 <span class="comment">%        singular points)</span>
+0011 <span class="comment">%eimg  - [OUT] energy image. Indicates the 'ridgeness' of a block (can be</span>
+0012 <span class="comment">%        used for fingerprint segmentation)</span>
+0013 <span class="comment">%enhimg- [OUT] enhanced image</span>
+0014 <span class="comment">%img   - [IN]  input fingerprint image (HAS to be of DOUBLE type)</span>
+0015 <span class="comment">%Contact:</span>
+0016 <span class="comment">%   ssc5@eng.buffalo.edu</span>
+0017 <span class="comment">%   www.eng.buffalo.edu/~ssc5</span>
+0018 <span class="comment">%Reference:</span>
+0019 <span class="comment">%S. Chikkerur,C. Wu and Govindaraju, &quot;A Systematic approach for</span>
+0020 <span class="comment">%feature extraction in fingerprint images&quot;,ICBA 2004</span>
+0021 <span class="comment">%--------------------------------------------------------------------------</span>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function [cimg, oimg,fimg,bwimg,eimg,enhimg] =  fft_enhance_cubs(img, BLKSZ)</a>
+0023     <span class="keyword">global</span> NFFT;
+0024 
+0025     <span class="keyword">if</span> BLKSZ &gt; 0
+0026        NFFT        =   32;     <span class="comment">%size of FFT</span>
+0027        OVRLP       =   2;      <span class="comment">%size of overlap</span>
+0028        ALPHA       =   0.5;    <span class="comment">%root filtering</span>
+0029        RMIN        =   4;<span class="comment">%%3;      %min allowable ridge spacing</span>
+0030        RMAX        =   40;     <span class="comment">%maximum allowable ridge spacing</span>
+0031        ESTRETCH    =   20;     <span class="comment">%for contrast enhancement</span>
+0032        ETHRESH     =   19;      <span class="comment">%threshold for the energy</span>
+0033     <span class="keyword">else</span>
+0034        NFFT        =   32;     <span class="comment">%size of FFT</span>
+0035        BLKSZ       =   12;     <span class="comment">%size of the block</span>
+0036        OVRLP       =   6;      <span class="comment">%size of overlap</span>
+0037        ALPHA       =   0.5;    <span class="comment">%root filtering</span>
+0038        RMIN        =   3;      <span class="comment">%min allowable ridge spacing</span>
+0039        RMAX        =   18;     <span class="comment">%maximum allowable ridge spacing</span>
+0040        ESTRETCH    =   20;     <span class="comment">%for contrast enhancement</span>
+0041        ETHRESH     =   6;      <span class="comment">%threshold for the energy</span>
+0042     <span class="keyword">end</span>
+0043     
+0044     [nHt,nWt]   =   size(img);  
+0045     img         =   double(img);    <span class="comment">%convert to DOUBLE</span>
+0046     nBlkHt      =   floor((nHt-2*OVRLP)/BLKSZ);
+0047     nBlkWt      =   floor((nWt-2*OVRLP)/BLKSZ);
+0048     fftSrc      =   zeros(nBlkHt*nBlkWt,NFFT*NFFT); <span class="comment">%stores FFT</span>
+0049     nWndSz      =   BLKSZ+2*OVRLP; <span class="comment">%size of analysis window.</span>
+0050     <span class="comment">%-------------------------</span>
+0051     <span class="comment">%allocate outputs</span>
+0052     <span class="comment">%-------------------------</span>
+0053     oimg        =   zeros(nBlkHt,nBlkWt);
+0054     fimg        =   zeros(nBlkHt,nBlkWt);
+0055     bwimg       =   zeros(nBlkHt,nBlkWt);
+0056     eimg        =   zeros(nBlkHt,nBlkWt);
+0057     enhimg      =   zeros(nHt,nWt);
+0058     
+0059     <span class="comment">%-------------------------</span>
+0060     <span class="comment">%precomputations</span>
+0061     <span class="comment">%-------------------------</span>
+0062     [x,y]       =   meshgrid(0:nWndSz-1,0:nWndSz-1);
+0063     dMult       =   (-1).^(x+y); <span class="comment">%used to center the FFT</span>
+0064     [x,y]       =   meshgrid(-NFFT/2:NFFT/2-1,-NFFT/2:NFFT/2-1);
+0065     r           =   sqrt(x.^2+y.^2)+eps;
+0066     th          =   atan2(y,x);
+0067     th(th&lt;0)    =   th(th&lt;0)+pi;
+0068     w           =   <a href="#_sub2" class="code" title="subfunction w = raised_cosine_window(blksz,ovrlp)">raised_cosine_window</a>(BLKSZ,OVRLP); <span class="comment">%spectral window</span>
+0069 
+0070     <span class="comment">%-------------------------</span>
+0071     <span class="comment">%Load filters</span>
+0072     <span class="comment">%-------------------------</span>
+0073     load angular_filters_pi_4;   <span class="comment">%now angf_pi_4 has filter coefficients</span>
+0074     angf_pi_4 = angf;
+0075     load angular_filters_pi_2;   <span class="comment">%now angf_pi_2 has filter coefficients</span>
+0076     angf_pi_2 = angf;
+0077     <span class="comment">%-------------------------</span>
+0078     <span class="comment">%Bandpass filter</span>
+0079     <span class="comment">%-------------------------</span>
+0080     FLOW        =   NFFT/RMAX;
+0081     FHIGH       =   NFFT/RMIN;
+0082     
+0083     dRLow       =   1./(1+(r/FHIGH).^4);    <span class="comment">%low pass butterworth filter</span>
+0084     dRHigh      =   1./(1+(FLOW./r).^4);    <span class="comment">%high pass butterworth filter</span>
+0085     dBPass      =   dRLow.*dRHigh;          <span class="comment">%bandpass</span>
+0086     
+0087     <span class="comment">%-------------------------</span>
+0088     <span class="comment">%FFT Analysis</span>
+0089     <span class="comment">%-------------------------</span>
+0090     <span class="keyword">for</span> i = 0:nBlkHt-1
+0091         nRow = i*BLKSZ+OVRLP+1;  
+0092         <span class="keyword">for</span> j = 0:nBlkWt-1
+0093             nCol = j*BLKSZ+OVRLP+1;
+0094             <span class="comment">%extract local block</span>
+0095             blk     =   img(nRow-OVRLP:nRow+BLKSZ+OVRLP-1,nCol-OVRLP:nCol+BLKSZ+OVRLP-1);
+0096             <span class="comment">%remove dc</span>
+0097             dAvg    =   sum(sum(blk))/(nWndSz*nWndSz);
+0098             blk     =   blk-dAvg;   <span class="comment">%remove DC content</span>
+0099             blk     =   blk.*w;     <span class="comment">%multiply by spectral window</span>
+0100             <span class="comment">%--------------------------</span>
+0101             <span class="comment">%do pre filtering</span>
+0102             <span class="comment">%--------------------------</span>
+0103             blkfft  =   fft2(blk.*dMult,NFFT,NFFT);
+0104             blkfft  =   blkfft.*dBPass;             <span class="comment">%band pass filtering</span>
+0105             dEnergy =   abs(blkfft).^2;
+0106             blkfft  =   blkfft.*sqrt(dEnergy);      <span class="comment">%root filtering(for diffusion)</span>
+0107             fftSrc(nBlkWt*i+j+1,:) = transpose(blkfft(:));
+0108             dEnergy =   abs(blkfft).^2;             <span class="comment">%----REDUCE THIS COMPUTATION----</span>
+0109             <span class="comment">%--------------------------</span>
+0110             <span class="comment">%compute statistics</span>
+0111             <span class="comment">%--------------------------</span>
+0112             dTotal          =   sum(sum(dEnergy))/(NFFT*NFFT);
+0113             fimg(i+1,j+1)   =   NFFT/(<a href="#_sub6" class="code" title="subfunction mr = compute_mean_frequency(dEnergy,r)">compute_mean_frequency</a>(dEnergy,r)+eps); <span class="comment">%ridge separation</span>
+0114             oimg(i+1,j+1)   =   <a href="#_sub5" class="code" title="subfunction mth = compute_mean_angle(dEnergy,th)">compute_mean_angle</a>(dEnergy,th);         <span class="comment">%ridge angle</span>
+0115             eimg(i+1,j+1)   =   log(dTotal+eps);                        <span class="comment">%used for segmentation</span>
+0116         <span class="keyword">end</span>;<span class="comment">%for j</span>
+0117     <span class="keyword">end</span>;<span class="comment">%for i</span>
+0118 
+0119     <span class="comment">%-------------------------</span>
+0120     <span class="comment">%precomputations</span>
+0121     <span class="comment">%-------------------------</span>
+0122     [x,y]       =   meshgrid(-NFFT/2:NFFT/2-1,-NFFT/2:NFFT/2-1);
+0123     dMult       =   (-1).^(x+y); <span class="comment">%used to center the FFT</span>
+0124 
+0125     <span class="comment">%-------------------------</span>
+0126     <span class="comment">%process the resulting maps</span>
+0127     <span class="comment">%-------------------------</span>
+0128     <span class="keyword">for</span> i = 1:3
+0129         oimg = <a href="smoothen_orientation_image.html" class="code" title="function noimg = smoothen_orientation_image(oimg)">smoothen_orientation_image</a>(oimg);            <span class="comment">%smoothen orientation image</span>
+0130     <span class="keyword">end</span>;
+0131     fimg    =   <a href="smoothen_frequency_image.html" class="code" title="function nfimg = smoothen_frequency_image(fimg,RLOW,RHIGH,diff_cycles)">smoothen_frequency_image</a>(fimg,RMIN,RMAX,5); <span class="comment">%diffuse frequency image</span>
+0132     cimg    =   <a href="compute_coherence.html" class="code" title="function [cimg] = compute_coherence(oimg)">compute_coherence</a>(oimg);                    <span class="comment">%coherence image for bandwidth</span>
+0133     bwimg   =   <a href="#_sub4" class="code" title="subfunction bwimg = get_angular_bw_image(c)">get_angular_bw_image</a>(cimg);                 <span class="comment">%QUANTIZED bandwidth image</span>
+0134     <span class="comment">%-------------------------</span>
+0135     <span class="comment">%FFT reconstruction</span>
+0136     <span class="comment">%-------------------------</span>
+0137     <span class="keyword">for</span> i = 0:nBlkHt-1
+0138         <span class="keyword">for</span> j = 0:nBlkWt-1
+0139             nRow = i*BLKSZ+OVRLP+1;            
+0140             nCol = j*BLKSZ+OVRLP+1;
+0141             <span class="comment">%--------------------------</span>
+0142             <span class="comment">%apply the filters</span>
+0143             <span class="comment">%--------------------------</span>
+0144             blkfft  =   reshape(transpose(fftSrc(nBlkWt*i+j+1,:)),NFFT,NFFT);
+0145             <span class="comment">%--------------------------</span>
+0146             <span class="comment">%reconstruction</span>
+0147             <span class="comment">%--------------------------</span>
+0148             af      =   <a href="#_sub3" class="code" title="subfunction r = get_angular_filter(t0,bw,angf_pi_4,angf_pi_2)">get_angular_filter</a>(oimg(i+1,j+1),bwimg(i+1,j+1),angf_pi_4,angf_pi_2);
+0149             blkfft  =   blkfft.*(af); 
+0150             blk     =   real(ifft2(blkfft).*dMult);
+0151             enhimg(nRow:nRow+BLKSZ-1,nCol:nCol+BLKSZ-1)=blk(OVRLP+1:OVRLP+BLKSZ,OVRLP+1:OVRLP+BLKSZ);
+0152         <span class="keyword">end</span>;<span class="comment">%for j</span>
+0153     <span class="keyword">end</span>;<span class="comment">%for i</span>
+0154     <span class="comment">%end block processing</span>
+0155     <span class="comment">%--------------------------</span>
+0156     <span class="comment">%contrast enhancement</span>
+0157     <span class="comment">%--------------------------</span>
+0158     enhimg =sqrt(abs(enhimg)).*sign(enhimg);
+0159     mx     =max(max(enhimg));
+0160     mn     =min(min(enhimg));
+0161     enhimg =uint8((enhimg-mn)/(mx-mn)*254+1);
+0162     
+0163     <span class="comment">%--------------------------</span>
+0164     <span class="comment">%clean up the image</span>
+0165     <span class="comment">%--------------------------</span>
+0166     emsk  = imresize(eimg,[nHt,nWt]);
+0167     enhimg(emsk&lt;ETHRESH) = 128;
+0168 <span class="comment">%end function fft_enhance_cubs</span>
+0169 
+0170 <span class="comment">%-----------------------------------</span>
+0171 <span class="comment">%raised_cosine</span>
+0172 <span class="comment">%returns 1D spectral window</span>
+0173 <span class="comment">%syntax:</span>
+0174 <span class="comment">%y = raised_cosine(nBlkSz,nOvrlp)</span>
+0175 <span class="comment">%y      - [OUT] 1D raised cosine function</span>
+0176 <span class="comment">%nBlkSz - [IN]  the window is constant here</span>
+0177 <span class="comment">%nOvrlp - [IN]  the window has transition here</span>
+0178 <span class="comment">%-----------------------------------</span>
+0179 <a name="_sub1" href="#_subfunctions" class="code">function y = raised_cosine(nBlkSz,nOvrlp)</a>
+0180     nWndSz  =   (nBlkSz+2*nOvrlp);
+0181     x       =   abs(-nWndSz/2:nWndSz/2-1);
+0182     y       =   0.5*(cos(pi*(x-nBlkSz/2)/nOvrlp)+1);
+0183     y(abs(x)&lt;nBlkSz/2)=1;
+0184 <span class="comment">%end function raised_cosine</span>
+0185 
+0186 <span class="comment">%-----------------------------------</span>
+0187 <span class="comment">%raised_cosine_window</span>
+0188 <span class="comment">%returns 2D spectral window</span>
+0189 <span class="comment">%syntax:</span>
+0190 <span class="comment">%w = raised_cosine_window(blksz,ovrlp)</span>
+0191 <span class="comment">%w      - [OUT] 1D raised cosine function</span>
+0192 <span class="comment">%nBlkSz - [IN]  the window is constant here</span>
+0193 <span class="comment">%nOvrlp - [IN]  the window has transition here</span>
+0194 <span class="comment">%-----------------------------------</span>
+0195 <a name="_sub2" href="#_subfunctions" class="code">function w = raised_cosine_window(blksz,ovrlp)</a>
+0196     y = <a href="#_sub1" class="code" title="subfunction y = raised_cosine(nBlkSz,nOvrlp)">raised_cosine</a>(blksz,ovrlp);
+0197     w = y(:)*y(:)';
+0198 <span class="comment">%end function raised_cosine_window</span>
+0199 
+0200 <span class="comment">%---------------------------------------------------------------------</span>
+0201 <span class="comment">%get_angular_filter</span>
+0202 <span class="comment">%generates an angular filter centered around 'th' and with bandwidth 'bw'</span>
+0203 <span class="comment">%the filters in angf_xx are precomputed using angular_filter_bank.m</span>
+0204 <span class="comment">%syntax:</span>
+0205 <span class="comment">%r = get_angular_filter(t0,bw)</span>
+0206 <span class="comment">%r - [OUT] angular filter of size NFFTxNFFT</span>
+0207 <span class="comment">%t0- mean angle (obtained from orientation image)</span>
+0208 <span class="comment">%bw- angular bandwidth(obtained from bandwidth image)</span>
+0209 <span class="comment">%angf_xx - precomputed filters (using angular_filter_bank.m)</span>
+0210 <span class="comment">%-----------------------------------------------------------------------</span>
+0211 <a name="_sub3" href="#_subfunctions" class="code">function r = get_angular_filter(t0,bw,angf_pi_4,angf_pi_2)</a>
+0212     <span class="keyword">global</span> NFFT;
+0213     TSTEPS = size(angf_pi_4,2);
+0214     DELTAT = pi/TSTEPS;
+0215     <span class="comment">%get the closest filter</span>
+0216     i      = floor((t0+DELTAT/2)/DELTAT);
+0217     i      = mod(i,TSTEPS)+1; 
+0218     <span class="keyword">if</span>(bw == pi/4)
+0219         r      = reshape(angf_pi_4(:,i),NFFT,NFFT)';
+0220     <span class="keyword">elseif</span>(bw == pi/2)
+0221         r      = reshape(angf_pi_2(:,i),NFFT,NFFT)';
+0222     <span class="keyword">else</span>
+0223         r      = ones(NFFT,NFFT);
+0224     <span class="keyword">end</span>;
+0225 <span class="comment">%end function get_angular_filter</span>
+0226 
+0227 
+0228 <span class="comment">%-----------------------------------------------------------</span>
+0229 <span class="comment">%get_angular_bw_image</span>
+0230 <span class="comment">%the bandwidth allocation is currently based on heuristics</span>
+0231 <span class="comment">%(domain knowledge :)).</span>
+0232 <span class="comment">%syntax:</span>
+0233 <span class="comment">%bwimg = get_angular_bw_image(c)</span>
+0234 <span class="comment">%-----------------------------------------------------------</span>
+0235 <a name="_sub4" href="#_subfunctions" class="code">function bwimg = get_angular_bw_image(c)</a>
+0236     bwimg   =   zeros(size(c));
+0237     bwimg(:,:)    = pi/2;                       <span class="comment">%med bw</span>
+0238     bwimg(c&lt;=0.7) = pi;                         <span class="comment">%high bw</span>
+0239     bwimg(c&gt;=0.9) = pi/4;                       <span class="comment">%low bw</span>
+0240 <span class="comment">%end function get_angular_bw</span>
+0241 
+0242 
+0243 <span class="comment">%-----------------------------------------------------------</span>
+0244 <span class="comment">%get_angular_bw_image</span>
+0245 <span class="comment">%the bandwidth allocation is currently based on heuristics</span>
+0246 <span class="comment">%(domain knowledge :)).</span>
+0247 <span class="comment">%syntax:</span>
+0248 <span class="comment">%bwimg = get_angular_bw_image(c)</span>
+0249 <span class="comment">%-----------------------------------------------------------</span>
+0250 <a name="_sub5" href="#_subfunctions" class="code">function mth = compute_mean_angle(dEnergy,th)</a>
+0251     <span class="keyword">global</span> NFFT;
+0252     sth         =   sin(2*th);
+0253     cth         =   cos(2*th);
+0254     num         =   sum(sum(dEnergy.*sth));
+0255     den         =   sum(sum(dEnergy.*cth));
+0256     mth         =   0.5*atan2(num,den);
+0257     <span class="keyword">if</span>(mth &lt;0)
+0258         mth = mth+pi;
+0259     <span class="keyword">end</span>;
+0260 <span class="comment">%end function compute_mean_angle</span>
+0261 
+0262 <span class="comment">%-----------------------------------------------------------</span>
+0263 <span class="comment">%get_angular_bw_image</span>
+0264 <span class="comment">%the bandwidth allocation is currently based on heuristics</span>
+0265 <span class="comment">%(domain knowledge :)).</span>
+0266 <span class="comment">%syntax:</span>
+0267 <span class="comment">%bwimg = get_angular_bw_image(c)</span>
+0268 <span class="comment">%-----------------------------------------------------------</span>
+0269 <a name="_sub6" href="#_subfunctions" class="code">function mr = compute_mean_frequency(dEnergy,r)</a>
+0270     <span class="keyword">global</span> NFFT;
+0271     num         =   sum(sum(dEnergy.*r));
+0272     den         =   sum(sum(dEnergy));
+0273     mr          =   num/(den+eps);
+0274 <span class="comment">%end function compute_mean_angle</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

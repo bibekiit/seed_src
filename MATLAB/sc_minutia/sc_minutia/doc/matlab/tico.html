@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of tico</title>
+  <meta name="keywords" content="tico">
+  <meta name="description" content="JI:">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; tico.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>tico
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>JI:</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [orients, radii, minX, minY, minT] = tico(img,x,y, oimg, orient_img, o_rel, radius, theta_count, c_flag, start_t, blk_sz) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">JI:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="extract_finger.html" class="code" title="function [ret] = extract_finger(filename)">extract_finger</a>	Author: Joshua Abraham</li><li><a href="figures.html" class="code" title="function [ret] = figures(f1, f2)">figures</a>	Bibliography</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 
+0002 <span class="comment">%JI:</span>
+0003 <a name="_sub0" href="#_subfunctions" class="code">function [orients, radii, minX, minY, minT] = tico(img,x,y, oimg, orient_img, o_rel, radius, theta_count, c_flag, start_t, blk_sz)</a>
+0004  
+0005   Xt=0;
+0006   Yt=0;
+0007   orients=[];
+0008   radii = [];
+0009   index = 1;
+0010 
+0011   minX = 0;
+0012   minY = 0;
+0013   minT = 2*pi;
+0014 
+0015   start_theta = 0;
+0016   <span class="keyword">if</span> c_flag == 1
+0017      start_theta = start_t;
+0018   <span class="keyword">else</span>
+0019      start_theta = orient_img(y,x); <span class="comment">%oimg(ceil(y/blk_sz),ceil(x/blk_sz));</span>
+0020   <span class="keyword">end</span>
+0021   
+0022   theta = start_theta;
+0023   tmp_radius = radius;
+0024   o_index = 1;
+0025   r_index = 1;
+0026   o_i = 0;  
+0027 
+0028   <span class="keyword">while</span> r_index &lt;= numel(radius)
+0029      
+0030     <span class="keyword">while</span> ( o_i &lt; theta_count(o_index) ) &amp;&amp; ~c_flag || c_flag &amp;&amp; o_i &lt; theta_count(o_index)/2 
+0031 
+0032       Xt = round(x + radius(r_index) * cos(theta));
+0033       Yt = round(y - radius(r_index) * sin(theta));
+0034       
+0035       good=1; 
+0036       <span class="keyword">if</span> Xt &lt;= 20 || Xt &gt;= size(img,2) - 20 ||  Yt &lt;= 20 || Yt &gt;= size(img,1) - 20
+0037          good = 0;
+0038       <span class="keyword">end</span>
+0039 
+0040       <span class="comment">%JI: was 0.7</span>
+0041       <span class="keyword">if</span> good == 0 || (~isnan(o_rel(Yt,Xt)) &amp;&amp; o_rel(Yt,Xt) &lt; 0.5 )
+0042         radii(index) = -1;
+0043         orients(index) = -1;
+0044       <span class="keyword">else</span>
+0045         t_a=[];
+0046         c = 0;
+0047         <span class="keyword">for</span> e=Yt-1:Yt+1
+0048           <span class="keyword">for</span> f=Xt-1:Xt+1
+0049        <span class="comment">%      if img(e,f) == 0</span>
+0050                c = c + 1;
+0051                t_a(c) = orient_img(e,f);
+0052         <span class="comment">%    end</span>
+0053           <span class="keyword">end</span>
+0054         <span class="keyword">end</span> 
+0055  
+0056         <span class="keyword">if</span> numel(c) == 0
+0057            radii(index) = -1;
+0058            orients(index) = -1;
+0059         <span class="keyword">else</span>
+0060           t_a = median(t_a); <span class="comment">%oimg(ceil(Yt/blk_sz), ceil(Xt/blk_sz));</span>
+0061           t_b = start_theta;
+0062       
+0063           radii(index) = radius(r_index);
+0064           orients(index) = min([abs(t_b-t_a), abs(pi - abs(t_b-t_a))]) * 2/pi;
+0065 
+0066           <span class="keyword">if</span>(orients(index) &lt; minT)
+0067             minT = orients(index);
+0068             minX = Xt;
+0069             minY = Yt;
+0070           <span class="keyword">end</span>
+0071 
+0072         <span class="keyword">end</span>
+0073       <span class="keyword">end</span> 
+0074       o_i = o_i + 1;  
+0075 
+0076       index = index + 1;
+0077       theta = theta + o_i * 2*pi/theta_count(o_index);
+0078     <span class="keyword">end</span>
+0079     r_index = r_index + 1;
+0080     theta = start_theta;
+0081     o_index = o_index + 1;
+0082     o_i = 0;
+0083   <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

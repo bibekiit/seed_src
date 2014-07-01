@@ -1,0 +1,423 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of register</title>
+  <meta name="keywords" content="register">
+  <meta name="description" content="Author: Joshua Abraham">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; register.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>register
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>Author: Joshua Abraham</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [fr, similarity] = register(f1,f2) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">    Author: Joshua Abraham
+    Email: algorithm007@hotmail.com
+    Description:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="calc_orient.html" class="code" title="function [similarity, index, r_g] = calc_orient(A, rA, B, rB, W)">calc_orient</a>	JI</li><li><a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>	DIST2	Calculates squared distance between two sets of points.</li><li><a href="hist_cost_2.html" class="code" title="function [HC]=hist_cost_2(BH1,BH2, r_inner, r_outer, nbins_theta, nbins_r);">hist_cost_2</a>	HC=hist_cost_2(BH1,BH2);</li><li><a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>	[BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="do_match.html" class="code" title="function [sim, angle, sc_cost, E] = do_match(f1, f2)">do_match</a>	Author: Joshua Abraham</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%    Author: Joshua Abraham</span>
+0002 <span class="comment">%    Email: algorithm007@hotmail.com</span>
+0003 <span class="comment">%    Description:</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%</span>
+0006 
+0007 
+0008 <a name="_sub0" href="#_subfunctions" class="code">function [fr, similarity] = register(f1,f2)</a>
+0009 
+0010 cla
+0011 fr=struct(<span class="string">'X'</span>, [], <span class="string">'M'</span>, [], <span class="string">'O'</span>, [], <span class="string">'R'</span>, [], <span class="string">'N'</span>, [], <span class="string">'RO'</span>,[]); 
+0012 similarity=struct(<span class="string">'map'</span>, [], <span class="string">'o_res'</span>, [], <span class="string">'sc'</span>, -1, <span class="string">'area'</span>, -1 ); 
+0013 
+0014 
+0015 VERBOSE=0;
+0016 m1=f1.M;
+0017 m2=f2.M;
+0018 m1=mod(f1.M,pi);
+0019 m2=mod(f2.M,pi);
+0020 m1s=find(m1(:,3) &gt; 3);
+0021 m2s=find(m2(:,3) &gt; 3);
+0022 
+0023 singular1=f1.X(m1s,:);
+0024 singular2=f2.X(m2s,:);
+0025 
+0026 m_map1=[];
+0027 m_map2=[];
+0028 
+0029 m1=f1.M;
+0030 m2=f2.M;
+0031 X=f1.X;
+0032 Y=f2.X;
+0033 oX=f1.O;
+0034 oY=f2.O;
+0035 rX=f1.R;
+0036 rY=f2.R;
+0037 nX=f1.N; 
+0038 nY=f2.N; 
+0039 roX=f1.RO;
+0040 roY=f2.RO;
+0041 
+0042 ic1  = find(f1.M(:,3) == 5);
+0043 ic2  = find(f2.M(:,3) == 5);
+0044 
+0045 
+0046 low_core=0;
+0047 <span class="keyword">if</span> numel(ic1) &gt; 0 &amp;&amp; f1.M(ic1,2) &gt; 363
+0048    low_core=1;
+0049 <span class="keyword">end</span>
+0050 
+0051 <span class="keyword">if</span> numel(ic2) &gt; 0 &amp;&amp; f2.M(ic2,2) &gt; 363
+0052    low_core=1;
+0053 <span class="keyword">end</span>
+0054 
+0055 
+0056 edge_core = 0;
+0057 
+0058 <span class="keyword">if</span> numel(ic1) &gt; 0 &amp;&amp; numel(ic2) &gt; 0
+0059    GC=1;
+0060 <span class="keyword">else</span>
+0061   <span class="keyword">if</span> numel(singular1) == 0 || numel(singular2) == 0 
+0062      GC=0;
+0063   <span class="keyword">else</span>
+0064      <span class="comment">%core should be below image since we most likely</span>
+0065      <span class="comment">% have a huge region without any singularities (cores).</span>
+0066      <span class="comment">% i.e Max distance from core to singularity is limited.</span>
+0067      <span class="comment">% this idea assumes no heavy noise for core.</span>
+0068      <span class="keyword">if</span> numel(ic1) &gt; 0 &amp;&amp; numel(find(f2.M(m2s,2) &lt; 300))==0 
+0069         GC=3;
+0070      <span class="keyword">elseif</span> numel(ic2) &gt; 0 &amp;&amp; numel(find(f1.M(m1s,2) &lt; 300))==0
+0071         GC=4; 
+0072      <span class="keyword">else</span>  
+0073         GC=2;
+0074      <span class="keyword">end</span>
+0075   <span class="keyword">end</span>
+0076 <span class="keyword">end</span>
+0077 
+0078 orients = 100 * ones(size(X,1), size(Y,1));
+0079 orients_x = zeros(size(X,1), size(X,1));
+0080 orients_y = zeros(size(Y,1), size(Y,1));
+0081 orient_prob = zeros(size(X,1), size(Y,1));
+0082 
+0083 <span class="keyword">for</span> i=1:size(X,1)
+0084    <span class="keyword">for</span> j=1:size(Y,1)
+0085      <span class="keyword">if</span> m1(i,3) &lt; 5 &amp;&amp; m2(j,3) &lt; 5 
+0086         orients(i,j) = <a href="calc_orient.html" class="code" title="function [similarity, index, r_g] = calc_orient(A, rA, B, rB, W)">calc_orient</a>(oX(i,:), rX(i,:), oY(j,:), rY(j,:), [1:1]');
+0087      <span class="keyword">end</span>
+0088    <span class="keyword">end</span>
+0089 <span class="keyword">end</span>
+0090 
+0091 ndum1=0; 
+0092 ndum2=0; 
+0093 eps_dum=1;
+0094 nsamp1=size(X,1);
+0095 nsamp2=size(Y,1);
+0096 mean_dist_global=[]; 
+0097 display_flag = 1;
+0098 <span class="keyword">if</span> nsamp2&gt;nsamp1               <span class="comment">% (as is the case in the outlier test)</span>
+0099    ndum1=ndum1+(nsamp2-nsamp1);      
+0100 <span class="keyword">end</span>                                                                                     
+0101 eps_dum=1; 
+0102 
+0103 <span class="comment">%JI: store minimum error in iterations to avoid</span>
+0104 <span class="comment">% large jumps away from global minima to local minima</span>
+0105 min_error = -1;
+0106 
+0107 jjj=-1;
+0108 region_a=1;
+0109 m1a=[];
+0110 m2a=[];
+0111 
+0112 <span class="comment">% theta offset after warping from last iteration and the total theta offset</span>
+0113 <span class="comment">% from the start (in radians)</span>
+0114 <span class="comment">% 28/7/2006 (Paul Kwan)</span>
+0115 theta_offset_total = 0;
+0116 
+0117 <span class="comment">% initialize counter</span>
+0118 k=1;
+0119 s=1;
+0120 <span class="comment">% out_vec_{1,2} are indicator vectors for keeping track of estimated</span>
+0121 <span class="comment">% outliers on each iteration</span>
+0122 
+0123 angle = -1;
+0124 min_1 = 0;
+0125 min_2 = 0;
+0126 test_val = 100;
+0127 oco = 0;
+0128 ocm = 100;
+0129 oo=0;
+0130 test_n = 0;
+0131 iu_y = 0; iu_x = 0;
+0132 
+0133 Xo = [];
+0134 l = 10;
+0135 hc = 100;
+0136 
+0137 
+0138 sing1=[];
+0139 cdist=-1;
+0140 map=[];
+0141 o_res=[];
+0142 out_vec_1=zeros(1,nsamp1+1); 
+0143 out_vec_2=zeros(1,nsamp2+1);
+0144 dist_m=[];
+0145 orient_m=[];
+0146 
+0147 sc=-1; 
+0148 area=-1;
+0149 c_ratio=0;
+0150 
+0151 i1=[];
+0152 i2=[];
+0153 
+0154 <span class="keyword">for</span> i=1 : nsamp1 
+0155     <span class="keyword">for</span> j =1: nsamp2 
+0156 
+0157      t_angle = m1(i,4) - m2(j,4);                                                       
+0158 
+0159 
+0160      <span class="keyword">if</span> abs(t_angle) &gt; pi/2.75  || m1(i,3)&gt;=5 || m2(j,3)&gt;=5  || orients(i,j) &lt; 0.25 <span class="comment">%|| m1(i,3) ~= m2(j,3)</span>
+0161         <span class="keyword">continue</span>;                
+0162      <span class="keyword">end</span>
+0163 
+0164      sct=0; region_a=0;
+0165 
+0166      r_t =  m2(j,4) -  m1(i,4);   
+0167      m1t = m1(:,4);
+0168      v = X(:,2);
+0169      w = X(:,1);
+0170      Xt = X;       
+0171      Xta = Xt; 
+0172      Xt(:,2) = v*cos(r_t) - w*sin(r_t);  
+0173      Xt(:,1) = v*sin(r_t) + w*cos(r_t);  
+0174       
+0175      diffx = Xt(i,1)   - Y(j,1); 
+0176      diffy = Xt(i,2)  -  Y(j,2); 
+0177      Xt(:,1) = Xt(:,1) - diffx;
+0178      Xt(:,2) = Xt(:,2) - diffy;
+0179      Xtt = 1000*ones(nsamp2, 2);
+0180      Xtt(1:nsamp1,1:2) = Xt(:,1:2);
+0181 
+0182      Xt = Xtt;
+0183 
+0184      d1=sqrt(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>(Xt, Y));
+0185 
+0186      <span class="keyword">if</span> GC &gt; 0   
+0187        angle_diff = t_angle;
+0188        sing1 = singular1;
+0189        sing1(:,2) = singular1(:,2)*cos(r_t) - singular1(:,1)*sin(r_t);  
+0190        sing1(:,1) = singular1(:,2)*sin(r_t) + singular1(:,1)*cos(r_t);  
+0191 
+0192        cdist = d1(ic1, ic2);
+0193 
+0194        <span class="keyword">if</span> (GC==1)
+0195           <span class="keyword">if</span> cdist &gt; 0.18 
+0196              <span class="keyword">continue</span>
+0197           <span class="keyword">end</span>
+0198        <span class="keyword">else</span>
+0199           c_ratio=0;
+0200        <span class="keyword">end</span>
+0201      <span class="keyword">end</span>
+0202 
+0203      xt = min(Xt(1:nsamp1,2));
+0204      xb = max(Xt(1:nsamp1,2));
+0205      xl = min(Xt(1:nsamp1,1));
+0206      xr = max(Xt(1:nsamp1,1));
+0207      yt = min(Y(1:nsamp2,2));
+0208      yb = max(Y(1:nsamp2,2));
+0209      yl = min(Y(1:nsamp2,1));
+0210      yr = max(Y(1:nsamp2,1));
+0211 
+0212      region_t=max(xt, yt);
+0213      region_b=min(xb, yb);
+0214      region_r=min(xr, yr);
+0215      region_l=max(xl, yl);
+0216 
+0217 
+0218      ind1=intersect(intersect(find(Xt(1:nsamp1,1) &gt; region_l), find(Xt(1:nsamp1,1) &lt; region_r)), intersect(find(Xt(1:nsamp1,2) &gt; region_t), find(Xt(1:nsamp1,2) &lt; region_b)) );
+0219      ind2=intersect(intersect(find(Y(:,1) &gt; region_l), find(Y(:,1) &lt; region_r)), intersect(find(Y(:,2) &gt; region_t), find(Y(:,2) &lt; region_b))  );
+0220 
+0221      <span class="keyword">if</span> numel(ind1) == 0 || numel(ind2) ==0
+0222         <span class="keyword">continue</span>
+0223      <span class="keyword">end</span>   
+0224 
+0225      nbins_theta=10; 
+0226      nbins_r=5; <span class="comment">%3</span>
+0227      r_inner=0.01; 
+0228      r_outer=min(region_b-region_t, region_r-region_l);  <span class="comment">%1/2</span>
+0229 
+0230      <span class="keyword">if</span> xl &lt; -0.2 || xr &gt; 1.25 || (GC==3 &amp;&amp; yt &gt; f1.X(ic1,2)) || (GC==4 &amp;&amp; xt &lt; f2.X(ic2,2))
+0231         <span class="keyword">continue</span>
+0232      <span class="keyword">end</span>
+0233 <span class="keyword">if</span> 1
+0234      <span class="keyword">if</span> r_outer &gt;= 1/8
+0235         r_outer=1;
+0236         XX=Xt(ind1,:);
+0237         XX(numel(ind1)+1,:)=[(xl+xr)/2, (xb+xt)/2];
+0238         YY=Y(ind2,:);
+0239         YY(numel(ind2)+1,:)=[(xl+xr)/2, (xb+xt)/2];
+0240         out_vec_1=zeros(1,numel(ind1)+1); 
+0241         out_vec_2=zeros(1,numel(ind2)+1);
+0242 <span class="comment">%        out_vec_1=zeros(1,numel(ind1));</span>
+0243 <span class="comment">%        out_vec_2=zeros(1,numel(ind2));</span>
+0244 
+0245 
+0246         [BH1,mean_dist_1]=<a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>(XX', zeros(1,numel(ind1)+1),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);
+0247         [BH2,mean_dist_2]=<a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>(YY',zeros(1,numel(ind2)+1),mean_dist_1,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
+0248 
+0249 <span class="comment">%        [BH1,mean_dist_1]=sc_compute(XX', zeros(1,numel(ind1)),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);</span>
+0250 <span class="comment">%        [BH2,mean_dist_2]=sc_compute(YY',zeros(1,numel(ind2)),mean_dist_1,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);</span>
+0251 
+0252 
+0253         <span class="comment">% compute pairwise cost between all shape contexts</span>
+0254         [costmat]=<a href="hist_cost_2.html" class="code" title="function [HC]=hist_cost_2(BH1,BH2, r_inner, r_outer, nbins_theta, nbins_r);">hist_cost_2</a>(BH1,BH2,r_inner, r_outer, nbins_theta, nbins_r);
+0255 
+0256         sct=costmat(numel(ind1)+1, numel(ind2)+1);
+0257         [a1,b1]=min(costmat,[],1);
+0258         [a2,b2]=min(costmat,[],2);
+0259         sct_p=mean(a1) + mean(a2);
+0260 
+0261         region_a = (region_b - region_t)*(region_r-region_l);
+0262 
+0263         <span class="keyword">if</span> GC~=1 &amp;&amp; sct_p &gt; 0.9 || (sct/region_a &gt; 4.5 &amp;&amp; region_a &gt; 0.11 || sct/region_a &gt; 10.9) &amp;&amp; GC==1
+0264            <span class="keyword">continue</span>
+0265         <span class="keyword">end</span>
+0266 
+0267      <span class="keyword">end</span>
+0268 <span class="keyword">end</span>
+0269      <span class="keyword">for</span> r=1:nsamp1
+0270        m1t(r) = mod(m1t(r) - t_angle + pi, pi);
+0271      <span class="keyword">end</span>
+0272      
+0273      o_diff = [];
+0274      index = 0;
+0275      t_o=[];
+0276      t_map=[]; 
+0277      map1=[];
+0278      map2=[];
+0279 
+0280      dists = [];
+0281      <span class="keyword">for</span> ii=1:size(Xt,1)
+0282       [v,py] = min(d1(ii,:));
+0283       <span class="keyword">for</span> jj=1:size(Y,1)
+0284           [v,px] = min(d1(:, jj));
+0285           <span class="keyword">if</span> d1(ii,jj) &lt; 0.05 &amp;&amp; m1(ii,3)&lt;5 &amp;&amp; m2(jj,3)&lt;5
+0286              <span class="keyword">if</span> numel(find(map1==ii))==0
+0287                 map1(numel(map1)+1)=ii;
+0288              <span class="keyword">end</span>
+0289              <span class="keyword">if</span> numel(find(map2==jj))==0
+0290                 map2(numel(map2)+1)=jj;
+0291              <span class="keyword">end</span>
+0292           <span class="keyword">end</span>
+0293 
+0294 
+0295           <span class="keyword">if</span> px == ii &amp;&amp; py == jj &amp;&amp; Xtt(ii,1) &lt; 1000 &amp;&amp; d1(ii,jj) &lt; 0.045 &amp;&amp; m1(ii,3) &lt; 5 &amp;&amp; m2(jj,3) &lt; 5 &amp;&amp; abs(m1t(ii) - m2(jj,4)) &lt; 0.5
+0296              index = index + 1;
+0297              o_diff(index) = abs(m1t(ii) - m2(jj,4));
+0298              t_o(index) = orients(ii,jj)*max(m1(ii,6), m2(jj,6));
+0299              t_map(index,:)=[ii,jj];
+0300              dists(index)=d1(ii,jj);
+0301           <span class="keyword">end</span>
+0302       <span class="keyword">end</span>
+0303      <span class="keyword">end</span>
+0304 
+0305 
+0306      o = sum(t_o)^2/index;
+0307      c  = sum(t_o) - sum(o_res);
+0308 
+0309 <span class="comment">%     if GC==1 &amp;&amp; cdist &gt; 0.12  &amp;&amp; ~((index &gt; 5 || index &gt; nsamp1/2) &amp;&amp; mean(t_o) &gt; 0.5) %index &gt; 1</span>
+0310 <span class="comment">%        continue</span>
+0311 <span class="comment">%     end</span>
+0312 
+0313 
+0314      <span class="keyword">if</span> VERBOSE
+0315         cla
+0316         subplot(2,2,1);
+0317         Xtt(nsamp1+1:nsamp2, 1) = 0;
+0318         Xtt(nsamp1+1:nsamp2, 2) = 0;
+0319         subplot(2,2,1);
+0320         plot(Xtt(:,1),Xtt(:,2),<span class="string">'b+'</span>,Y(:,1),Y(:,2),<span class="string">'ro'</span>)
+0321         title([<span class="string">'i='</span> int2str(i) <span class="string">' j='</span> int2str(j) <span class="string">' n1='</span> int2str(nsamp1) <span class="string">' n2='</span> int2str(nsamp2)])
+0322         c
+0323         GC
+0324         index
+0325         pause
+0326      <span class="keyword">end</span>
+0327 
+0328      <span class="keyword">if</span> c &gt; 0 &amp;&amp; index&gt;1 
+0329 <span class="comment">%sct_p</span>
+0330 <span class="comment">%sct_p / exp(-region_a*2)</span>
+0331         m_map1=map1;
+0332         m_map2=map2;
+0333         sc=sct;
+0334         area=region_a;
+0335         o_res=t_o;
+0336         map=t_map;
+0337         cla
+0338         test_n = index;
+0339         angle = t_angle;
+0340         Xtt(nsamp1+1:nsamp2, 1) = 0;
+0341         Xtt(nsamp1+1:nsamp2, 2) = 0;
+0342         Xo = Xtt;
+0343         i1=ind1;
+0344         i2=ind2;
+0345 
+0346 hold on
+0347         subplot(2,2,1);
+0348         plot(Xtt(:,1),Xtt(:,2),<span class="string">'b+'</span>,Y(:,1),Y(:,2),<span class="string">'ro'</span>)
+0349         <span class="keyword">if</span> GC == 1
+0350            plot(Xtt(ic1,1),Xtt(ic1,2),<span class="string">'g+'</span>,Y(ic2,1),Y(ic2,2),<span class="string">'go'</span>)
+0351         <span class="keyword">end</span> 
+0352  title([<span class="string">'i='</span> int2str(i) <span class="string">' j='</span> int2str(j) <span class="string">' n1='</span> int2str(nsamp1) <span class="string">' n2='</span> int2str(nsamp2)])
+0353 hold off
+0354        drawnow
+0355       <span class="keyword">end</span>
+0356    <span class="keyword">end</span>
+0357 <span class="keyword">end</span>
+0358 
+0359 s1=numel(find(f1.M(:,3) &lt; 5));
+0360 s2=numel(find(f2.M(:,3) &lt; 5));
+0361 
+0362 <span class="keyword">if</span> numel(Xo) &gt; 0 <span class="comment">%&amp;&amp;  numel(i1) + numel(i2)-numel(o_res) &lt; 10</span>
+0363    fr=f1;
+0364    fr.M(:,4) = mod(fr.M(:,4) - angle + pi, pi);
+0365    fr.X=Xo(1:nsamp1,:); 
+0366    similarity=struct(<span class="string">'map'</span>, map, <span class="string">'o_res'</span>, o_res, <span class="string">'sc'</span>, sc, <span class="string">'area'</span>, area, <span class="string">'angle'</span>, angle,<span class="string">'map1'</span>, m_map1, <span class="string">'map2'</span>, m_map2 ); 
+0367 <span class="keyword">else</span>
+0368    911
+0369    fr=f2;
+0370    similarity=struct(<span class="string">'map'</span>, [], <span class="string">'o_res'</span>, [], <span class="string">'sc'</span>, -1, <span class="string">'area'</span>, -1 ); 
+0371 <span class="keyword">end</span>
+0372 
+0373 
+0374 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of tps_iter_match_no_anchors</title>
+  <meta name="keywords" content="tps_iter_match_no_anchors">
+  <meta name="description" content="Author: Joshua Abraham">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">matlab</a> &gt; tps_iter_match_no_anchors.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for matlab&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>tps_iter_match_no_anchors
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>Author: Joshua Abraham</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [sc_cost, Et, cvec, angle] = tps_iter_match_m1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_outer, n_iter, r, beta_init, i1, i2, anchors) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">    Author: Joshua Abraham
+    Email: algorithm007@hotmail.com
+    Description: Performs a heavily modified iterative TPS warping based the freely available
+    Shape Context code by (paper found at http://www.eecs.berkeley.edu/Research/Projects/CS/vision/shape/pami.html)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="bookstein.html" class="code" title="function [cx,cy,E,L]=bookstein(X,Y,beta_k);">bookstein</a>	[cx,cy,E,L]=bookstein(X,Y,beta_k);</li><li><a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>	DIST2	Calculates squared distance between two sets of points.</li><li><a href="hist_cost_2.html" class="code" title="function [HC]=hist_cost_2(BH1,BH2, r_inner, r_outer, nbins_theta, nbins_r);">hist_cost_2</a>	HC=hist_cost_2(BH1,BH2);</li><li><a href="hungarian.html" class="code" title="function [C,T]=hungarian(A)">hungarian</a>	HUNGARIAN Solve the Assignment problem using the Hungarian method.</li><li><a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>	[BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%    Author: Joshua Abraham</span>
+0002 <span class="comment">%    Email: algorithm007@hotmail.com</span>
+0003 <span class="comment">%    Description: Performs a heavily modified iterative TPS warping based the freely available</span>
+0004 <span class="comment">%    Shape Context code by (paper found at http://www.eecs.berkeley.edu/Research/Projects/CS/vision/shape/pami.html)</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 
+0009 
+0010 <a name="_sub0" href="#_subfunctions" class="code">function [sc_cost, Et, cvec, angle] = tps_iter_match_m1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_outer, n_iter, r, beta_init, i1, i2, anchors)   </a>
+0011 
+0012 <span class="comment">% script for doing shape-context based matching with alternating steps</span>
+0013 <span class="comment">% of estimating correspondences and estimating the regularized TPS</span>
+0014 <span class="comment">% transformation</span>
+0015 
+0016 <span class="keyword">if</span> numel(anchors) &gt; 0
+0017   gcx=[anchors(:,1)' i1]
+0018   gcy=[anchors(:,2)' i2]
+0019   l_a=length(anchors(:,1)') 
+0020 <span class="keyword">else</span> 
+0021   gcx=[i1]
+0022   gcy=[i2]
+0023   l_a=0
+0024 <span class="keyword">end</span>
+0025 
+0026 angle=-1;
+0027 
+0028 <span class="keyword">if</span> numel(anchors) &gt; 0
+0029   mm1=m1(anchors(:,1)',:);
+0030   mm2=m2(anchors(:,2)',:);
+0031   x=X(anchors(:,1)',:);
+0032   y=Y(anchors(:,2)',:);
+0033 <span class="keyword">else</span>
+0034   mm1=[];
+0035   mm2=[];
+0036   x=[];
+0037   y=[];
+0038 <span class="keyword">end</span>
+0039 
+0040 m1=m1(gcx,:);
+0041 m2=m2(gcy,:);
+0042 
+0043 ndum1=0; 
+0044 ndum2=0; 
+0045 eps_dum=1;
+0046 nsamp1=numel(gcx)
+0047 nsamp2=numel(gcy)
+0048 X=X(gcx,:);
+0049 Y=Y(gcy,:);
+0050 
+0051 mean_dist_global=[]; 
+0052 display_flag = 0;
+0053 Et=0;
+0054 
+0055 <span class="keyword">if</span> nsamp2&gt;nsamp1                                                                        
+0056    <span class="comment">% (as is the case in the outlier test)</span>
+0057    ndum1=ndum1+(nsamp2-nsamp1);                                              
+0058 <span class="keyword">end</span>                                                                                     
+0059 eps_dum=1; 
+0060 
+0061 <span class="comment">%JI: store minimum error in iterations to avoid</span>
+0062 <span class="comment">% large jumps away from global minima to local minima</span>
+0063 min_error = -1;
+0064 
+0065 
+0066 <span class="comment">% initialize transformed version of model pointset</span>
+0067 Xk=X;
+0068 
+0069 <span class="comment">% initialize counter</span>
+0070 k=1;
+0071 s=1;
+0072 <span class="comment">% out_vec_{1,2} are indicator vectors for keeping track of estimated</span>
+0073 <span class="comment">% outliers on each iteration</span>
+0074 out_vec_1=zeros(1,nsamp1); 
+0075 out_vec_2=zeros(1,nsamp2);
+0076 cvec=[];
+0077 
+0078 <span class="keyword">while</span> s 
+0079    <span class="comment">%disp(['iter=' int2str(k)])</span>
+0080 
+0081    <span class="comment">% compute shape contexts for (transformed) model</span>
+0082 
+0083 <span class="comment">%   [BH1,mean_dist_1]=sc_compute(Xk', m1(:,4)' ,mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);</span>
+0084    [BH1,mean_dist_1]=<a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>(Xk', zeros(1,nsamp1) ,mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);
+0085 
+0086    <span class="comment">% compute shape contexts for target, using the scale estimate from</span>
+0087    <span class="comment">% the warped model</span>
+0088    <span class="comment">% Note: this is necessary only because out_vec_2 can change on each</span>
+0089    <span class="comment">% iteration, which affects the shape contexts.  Otherwise, Y does</span>
+0090    <span class="comment">% not change.</span>
+0091 
+0092 <span class="comment">%   [BH2,mean_dist_2]=sc_compute(Y',m2(:,4)',mean_dist_1,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);</span>
+0093    [BH2,mean_dist_2]=<a href="sc_compute.html" class="code" title="function [BH,mean_dist]=sc_compute(Bsamp,Tsamp,mean_dist,nbins_theta,nbins_r,r_inner,r_outer,out_vec);">sc_compute</a>(Y',zeros(1,nsamp2),mean_dist_1,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
+0094 
+0095    <span class="comment">% compute regularization parameter</span>
+0096    beta_k=(mean_dist_1^2)*beta_init*r^(k-1);
+0097 
+0098    <span class="comment">% compute pairwise cost between all shape contexts</span>
+0099    costmat=<a href="hist_cost_2.html" class="code" title="function [HC]=hist_cost_2(BH1,BH2, r_inner, r_outer, nbins_theta, nbins_r);">hist_cost_2</a>(BH1,BH2,r_inner, r_outer, nbins_theta, nbins_r);
+0100 
+0101    <span class="comment">% ensure that no negative entries in the cost matrix</span>
+0102    temp = costmat &lt; eps;
+0103    costmat(temp) = eps;
+0104 
+0105    <span class="comment">% pad the cost matrix with costs for dummies</span>
+0106    nptsd=nsamp1+ndum1;
+0107    costmat2=eps_dum*ones(nptsd,nptsd);
+0108 
+0109    <span class="comment">%JI: cost matrix with dummy nodes appended</span>
+0110    costmat2(1:nsamp1,1:nsamp2)=costmat;
+0111    <span class="comment">%disp('running hungarian alg.')</span>
+0112 
+0113    costmat2=costmat2(l_a + 1 : nsamp2, l_a+1:nsamp2);
+0114 
+0115    dist_m=<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>(X(l_a + 1:nsamp1, :),Y(l_a + 1:nsamp2, :));
+0116    <span class="keyword">for</span> i=1:nsamp1-l_a
+0117        <span class="keyword">for</span> j=1:nsamp2-l_a 
+0118            intersect_flag=0;   
+0119            <span class="keyword">for</span> li=1:l_a
+0120                x1=X(li,1);
+0121                x2=Y(li,1);
+0122                x3=X(i,1);
+0123                x4=Y(j,1);
+0124                y1=X(li,2);
+0125                y2=Y(li,2);
+0126                y3=X(i,2);
+0127                y4=Y(j,2);
+0128    
+0129                <span class="keyword">if</span> det([1,1,1;x1,x2,x3;y1,y2,y3])*det([1,1,1;x1,x2,x4;y1,y2,y4]) &lt;= 0 &amp;&amp;  det([1,1,1;x1,x3,x4;y1,y3,y4])*det([1,1,1;x2,x3,x4;y2,y3,y4]) &lt;= 0
+0130                   intersect_flag=1;   
+0131                <span class="keyword">end</span>
+0132            <span class="keyword">end</span>
+0133            <span class="keyword">if</span> intersect_flag
+0134               costmat2(i,j)=costmat2(i,j)+100000;
+0135               <span class="keyword">continue</span>
+0136            <span class="keyword">end</span>
+0137 
+0138 <span class="comment">%           costmat2(i,j)=0.1*costmat2(i,j)+dist_m(i,j);%-max(orients(i,j),0.2);</span>
+0139 
+0140            mox=m1(i,4);
+0141            moy=m2(j,4);
+0142            z=min(abs(mox-moy), abs(2*pi - abs(mox-moy))); 
+0143            costmat2(i,j)=costmat2(i,j)*(dist_m(i,j)^2)*z;<span class="comment">%/2;</span>
+0144 <span class="comment">%</span>
+0145 <span class="comment">%             if z &lt; pi/8 &amp;&amp; dist_m(i,j) &lt; 0.06</span>
+0146 <span class="comment">%                    costmat2(i,j)=costmat2(i,j)*dist_m(i,j);%/2;</span>
+0147 <span class="comment">%                 else</span>
+0148 <span class="comment">%                    costmat2(i,j)=costmat2(i,j) + 5*abs(costmat2(i,j));</span>
+0149 <span class="comment">%             end</span>
+0150 
+0151              <span class="keyword">if</span> m1(i,4) == m2(j,4) 
+0152     <span class="comment">%             costmat2(i,j)=costmat2(i,j)*0.95;</span>
+0153              <span class="keyword">end</span>
+0154         <span class="keyword">end</span>
+0155    <span class="keyword">end</span>
+0156 
+0157    <span class="keyword">if</span> numel(costmat2) &gt; 1
+0158      cvec=<a href="hungarian.html" class="code" title="function [C,T]=hungarian(A)">hungarian</a>(costmat2);
+0159    <span class="keyword">else</span>
+0160      orient_res = -1;
+0161      mse2 = 1;
+0162      sc_cost = 1;
+0163      E = 0;
+0164      theta_offset_by_warping = 50;
+0165      <span class="keyword">return</span>
+0166    <span class="keyword">end</span>
+0167 
+0168    cvec=cvec+l_a;
+0169    cvec=[1:l_a cvec];
+0170 
+0171    <span class="comment">% update outlier indicator vectors</span>
+0172    [a,cvec2]=sort(cvec);
+0173    out_vec_1=cvec2(1:nsamp1)&gt;nsamp2;
+0174    out_vec_2=cvec(1:nsamp2)&gt;nsamp1;             <span class="comment">%JI: cvec points to X match</span>
+0175      
+0176    <span class="comment">% format versions of Xk and Y that can be plotted with outliers'</span>
+0177    <span class="comment">% correspondences missing</span>
+0178 
+0179    X2=NaN*ones(nptsd,2);
+0180    m1a = NaN*ones(nsamp2,6);
+0181    X2(1:nsamp1,:)=Xk;
+0182    m1a(1:nsamp1, :) = m1;
+0183    X2=X2(cvec,:);
+0184   
+0185    m1a = m1a(cvec, :);
+0186    X2b=NaN*ones(nptsd,2);
+0187    X2b(1:nsamp1,:)=X;  
+0188    X2b=X2b(cvec,:);
+0189    m2a = m2;
+0190 
+0191    Y2=NaN*ones(nptsd,2); 
+0192    Y2(1:nsamp2,:)=Y;
+0193 
+0194    <span class="comment">% extract coordinates of non-dummy correspondences and use them</span>
+0195    <span class="comment">% to estimate transformation</span>
+0196    ind_good=intersect(find(~isnan(X2b(:,1))), find(~isnan(Y2(:,1))));
+0197    ind_good=intersect(find(~isnan(X2b(:,1))), find(~isnan(Y2(:,1))));
+0198 
+0199    dd=<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>(X2b(ind_good,:),Y2(ind_good,:)); 
+0200    i_vgood=1:l_a ;<span class="comment">%[];</span>
+0201    <span class="keyword">for</span> i=l_a+1:min(numel(cvec), nsamp1)
+0202        <span class="keyword">if</span> dd(i,i) &lt; 0.1
+0203           i_vgood = [i_vgood i];
+0204        <span class="keyword">end</span>
+0205    <span class="keyword">end</span>
+0206    ind_good = ind_good(i_vgood);   
+0207 
+0208    n_good=length(ind_good);
+0209 
+0210    X3b=X2b(ind_good,:);
+0211    Y3=Y2(ind_good,:);
+0212 
+0213    m1a = m1a(ind_good,:);
+0214    m2a = m2a(ind_good,:);
+0215 
+0216    n_good=length(ind_good);
+0217 
+0218 
+0219    <span class="keyword">if</span> display_flag == 0
+0220       figure(2)
+0221       plot(X2(:,1),X2(:,2),<span class="string">'b+'</span>,Y2(:,1),Y2(:,2),<span class="string">'ro'</span>)
+0222       hold on
+0223       h=plot([X2(:,1) Y2(:,1)]',[X2(:,2) Y2(:,2)]',<span class="string">'k-'</span>);
+0224       hold off
+0225       title([int2str(n_good) <span class="string">' correspondences (warped X)'</span>])
+0226       drawnow    
+0227       <span class="comment">% show the correspondences between the untransformed images</span>
+0228       figure(3)
+0229       plot(X(:,1),X(:,2),<span class="string">'b+'</span>,Y(:,1),Y(:,2),<span class="string">'ro'</span>)
+0230       ind=cvec(ind_good);
+0231       hold on
+0232       plot([X2b(:,1) Y2(:,1)]',[X2b(:,2) Y2(:,2)]',<span class="string">'k-'</span>)
+0233       hold off
+0234       title([int2str(n_good) <span class="string">' correspondences (unwarped X)'</span>])
+0235       drawnow    
+0236    <span class="keyword">end</span>
+0237 
+0238    <span class="comment">% estimate regularized TPS transformation</span>
+0239 X3b
+0240 Y3
+0241    <span class="keyword">if</span> numel(X3b) &gt; 1
+0242       [cx,cy,E]=<a href="bookstein.html" class="code" title="function [cx,cy,E,L]=bookstein(X,Y,beta_k);">bookstein</a>(X3b,Y3,beta_k);  
+0243       <span class="keyword">if</span> isnan(cx(1))
+0244          mse2 = 1;
+0245          sc_cost = 1;
+0246 <span class="comment">%         Et = 50;</span>
+0247 <span class="comment">%         cvec=[];</span>
+0248 <span class="keyword">break</span>
+0249 <span class="comment">%         return</span>
+0250       <span class="keyword">end</span>
+0251    <span class="keyword">else</span>
+0252      mse2 = 1;
+0253      sc_cost = 1;
+0254      E = 50;
+0255      <span class="keyword">return</span>
+0256    <span class="keyword">end</span>
+0257    Et=Et+E;
+0258 
+0259    <span class="comment">% calculate affine cost</span>
+0260    A=[cx(n_good+2:n_good+3,:) cy(n_good+2:n_good+3,:)];
+0261    <span class="comment">% JI: Compute the eigenvalues of A in an array, ordered descending.</span>
+0262    s=svd(A);                      
+0263    aff_cost=log(s(1)/s(2))
+0264    angle=abs(atan2( A(1,2) ,  A(2,2))*180/pi)
+0265 
+0266    orient_m = 0; 
+0267    sc_cost = [];
+0268    index = 0;
+0269    m_index = 0;
+0270    bad_count = 0;
+0271 
+0272    <span class="comment">% warp each coordinate</span>
+0273    fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp1); X'];
+0274    d2=max(<a href="dist2.html" class="code" title="function n2 = dist2(x, c)">dist2</a>(X3b,X),0);
+0275    U=d2.*log(d2+eps);
+0276    fx_wrp=cx(1:n_good)'*U;
+0277    fx=fx_aff+fx_wrp;
+0278    fy_aff=cy(n_good+1:n_good+3)'*[ones(1,nsamp1); X'];
+0279    fy_wrp=cy(1:n_good)'*U;
+0280    fy=fy_aff+fy_wrp;
+0281 
+0282    Z=[fx; fy]';
+0283 
+0284    Zk=NaN*ones(nptsd,2);
+0285    Zk(1:nsamp1,:)=Z;
+0286    Zk=Zk(cvec,:);
+0287    Zk = Zk(ind_good, :);
+0288 
+0289    <span class="comment">% compute theta_offset_by_warping from Xk and Z, and update</span>
+0290    <span class="comment">% theta_offset_total</span>
+0291    Diff = Xk - Z;
+0292    diff_x = sum(Diff(:,1));
+0293    diff_y = sum(Diff(:,2));
+0294 
+0295    <span class="comment">% compute the mean squared error between synthetic warped image</span>
+0296    <span class="comment">% and estimated warped image (using ground-truth correspondences</span>
+0297    <span class="comment">% on TPS transformed image)</span>
+0298 
+0299  <span class="comment">%  mse2=sqrt(mean((Y3(:,1)-Z(:,1)).^2+(Y3(:,2)-Z(:,2)).^2) );</span>
+0300 
+0301   <span class="comment">% mse2=sqrt(mean((Y3(:,1)-Zk(:,1)).^2+(Y3(:,2)-Zk(:,2)).^2) );</span>
+0302 mse2=0;
+0303 <span class="comment">%   disp(['error = ' num2str(mse2)])</span>
+0304 
+0305    <span class="keyword">if</span> display_flag == 0
+0306       figure(4)
+0307       plot(Z(:,1),Z(:,2),<span class="string">'b+'</span>,Y(:,1),Y(:,2),<span class="string">'ro'</span>);
+0308       title([<span class="string">'recovered TPS transformation (k='</span> int2str(k) <span class="string">', \lambda_o='</span> num2str(beta_init*r^(k-1)) <span class="string">', I_f='</span> num2str(E) <span class="string">', error='</span> num2str(mse2) <span class="string">')'</span>]) 
+0309       <span class="comment">% show warped coordinate grid</span>
+0310       hold on
+0311       plot(fx,fy,<span class="string">'k.'</span>,<span class="string">'markersize'</span>,1)
+0312       hold off
+0313       drawnow
+0314    <span class="keyword">end</span>
+0315    
+0316    <span class="comment">% update Xk for the next iteration</span>
+0317    Xk=Z;
+0318    
+0319    <span class="comment">% stop early if shape context score is sufficiently low</span>
+0320    <span class="keyword">if</span> k==n_iter || Et &gt; 1000
+0321       s=0;
+0322    <span class="keyword">else</span>
+0323       k=k+1;
+0324    <span class="keyword">end</span>
+0325 <span class="keyword">end</span>
+0326 
+0327 
+0328 <span class="comment">%Y(cvec(l_a+1:nsamp1),:)</span>
+0329 <span class="comment">%Xk(cvec(l_a+1:nsamp1),:)</span>
+0330 <span class="comment">%X(cvec(l_a+1:nsamp1),:)</span>
+0331 
+0332 cvec=cvec(l_a+1:nsamp2);
+0333 
+0334 
+0335 
+0336 
+0337 <span class="comment">%pause</span>
+0338 map=[];
+0339 index=1;
+0340 <span class="keyword">if</span> angle &lt; 30 &amp;&amp; Et &lt; 13 <span class="comment">%|| isnan(E)</span>
+0341 <span class="comment">%if angle &lt; 15 &amp;&amp; Et &lt; 13 %|| isnan(E)</span>
+0342    <span class="keyword">for</span> i=1:nsamp2-l_a
+0343        <span class="keyword">if</span> cvec(i) &lt;= nsamp1 
+0344            intersect_flag=0;   
+0345 
+0346 <span class="comment">%           d1=sqrt( (X(cvec(i),1)-Y(i,1))^2 + (X(cvec(i),2)-Y(i,2))^2);</span>
+0347            d1=sqrt( (Xk(cvec(i),1)-Y(i,1))^2 + (X(cvec(i),2)-Y(i,2))^2);
+0348 
+0349            <span class="keyword">for</span> li=1:l_a
+0350               x1=X(li,1);
+0351               x2=Y(li,1);
+0352               x3=X(cvec(i),1);
+0353               x4=Y(i,1);
+0354               y1=X(li,2);
+0355               y2=Y(li,2);
+0356               y3=X(cvec(i),2);
+0357               y4=Y(i,2);
+0358    
+0359               <span class="keyword">if</span> det([1,1,1;x1,x2,x3;y1,y2,y3])*det([1,1,1;x1,x2,x4;y1,y2,y4]) &lt;= 0 &amp;&amp;  det([1,1,1;x1,x3,x4;y1,y3,y4])*det([1,1,1;x2,x3,x4;y2,y3,y4]) &lt;= 0
+0360                  intersect_flag=intersect_flag + 1   
+0361               <span class="keyword">end</span>
+0362            <span class="keyword">end</span>
+0363 
+0364            <span class="keyword">if</span> d1 &lt; 0.04 &amp;&amp; intersect_flag&lt;2 
+0365               map(index,:)=[cvec(i)-l_a,i];
+0366               index=index+1;
+0367            <span class="keyword">else</span>
+0368                 d1
+0369            <span class="keyword">end</span>
+0370        <span class="keyword">end</span>
+0371    <span class="keyword">end</span>
+0372 <span class="keyword">end</span>
+0373 cvec=map;
+0374 angle
+0375 
+0376 <span class="keyword">if</span> Et &gt; 13
+0377    Et
+0378 <span class="comment">%   pause</span>
+0379 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 16-Apr-2014 19:12:41 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
