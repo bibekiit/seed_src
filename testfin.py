@@ -585,11 +585,13 @@ def main():
     
     [im2, normim, reliability, orientim, freq, newim, binim, mask] = testfin(im)
     
-    plt.imshow(im, cmap = plt.get_cmap("gray")) 
+    plt.imshow(im, cmap = plt.get_cmap("gray"))
+    plt.title('Original image')
     plt.draw()
     time.sleep(2)
     
-    plt.imshow(im2, cmap = plt.get_cmap("gray")) 
+    plt.imshow(im2, cmap = plt.get_cmap("gray"))
+    plt.title('Original image after histogram equalization')
     plt.draw()
     time.sleep(2)
     
@@ -629,7 +631,7 @@ def main():
     plt.title('final image')
     plt.draw()
     
-    #plt.close('all')
+    
 
 #########TESTING############
 thread = threading.Thread()
