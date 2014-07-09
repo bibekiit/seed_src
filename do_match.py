@@ -3,7 +3,7 @@ import numpy as np
 from scipy.io import loadmat,savemat
 import os
 import pdb
-import math
+import math, threading, time
 import register as rs
 import dist2 as ds
 from calc_orient import calc_orient
@@ -28,8 +28,8 @@ def do_match(*varargin):
     if nargin > 1:
         f2 = varargin[1]
     if nargin == 0:
-        f1 = '108_2.tif'
-        f2 = '108_3.tif'
+        f1 = 'DB1_B\\102_2.tif'
+        f2 = 'DB1_B\\108_3.tif'
     #load template fingerprint
     X = np.genfromtxt(f1+'.X',delimiter=',')
     m1 = np.genfromtxt(f1+'.m',delimiter=',')
@@ -240,6 +240,9 @@ def do_match(*varargin):
 
     if res['map'].size > 0:
         for i in range(1, (res['map'].shape[0] +1)):
+            if i == 12:
+                pdb.set_trace() #to be deleted
+            
             if res['map'][i -1, 0] == 0:
                 continue
             x = m1[(res['map'][i -1, 0] -1), 0]
@@ -283,11 +286,9 @@ def do_match(*varargin):
                         m_score = m_score + np.dot(np.dot(math.exp(- o_diff), math.exp(- dist_diff)), math.exp(- a_diff))
                         used.append(y)
                         t = t + 1
-##            if m_score == 0:
-##                #          continue
-
-##            if i == 27:
-##                pdb.set_trace()
+            if m_score == 0:
+                continue
+            pdb.set_trace() #to be deleted
             n_weight = np.insert(n_weight, i-1, m_score + bonus)
 
             rox = f1['RO'][res['map'][i -1, 0]-1, :]
@@ -303,7 +304,7 @@ def do_match(*varargin):
                 rox = rox[0:np.min(t)]
                 roy = roy[0:np.min(t)]
                 ro_res = np.insert(ro_res, i-1, np.max(abs(rox - roy)))
-                if np.logical_and(ro_res[(i -1)] < 0.1, np.min(t) > 4):
+                if np.logical_and(ro_res[(i -1)] < 0.1, np.min(t+1) > 4):
                     n_weight[(i -1)] = n_weight[(i -1)] + 0.2
             else:
                 ro_res = np.insert(ro_res, i-1, 0)
@@ -315,7 +316,7 @@ def do_match(*varargin):
             res['map'][np.setdiff1d(np.array([i-1]),np.flatnonzero(res['map'][:, 0] == res['map'][i -1, 0])), 0] = 0
             res['map'][np.setdiff1d(np.array([i-1]),np.flatnonzero(res['map'][:, 1] == res['map'][i -1, 1])), 0] = 0
 
-    #pdb.set_trace() #to be deleted
+    
     sc_cost = 100
 
     if o_res.size > 1:
@@ -348,7 +349,7 @@ def do_match(*varargin):
     for i in range(1, (ind.size +1)):
         dd1 = f1['N'][np.ix_(np.array(range(np.dot((res['map'][ind[(i-1)], 0] -1), (s1 - 1)) + 1, (np.dot((res['map'][ind[(i-1)], 0] -1), (s1 - 1)) + ns +1)))-1, range(2, 9))]
         dd2 = f2['N'][np.ix_(np.array(range(np.dot((res['map'][ind[(i-1)], 1] -1), (s2 - 1)) + 1, (np.dot((res['map'][ind[(i-1)], 1] -1), (s2 - 1)) + ns +1)))-1, range(2, 9))]
-    #pdb.set_trace() #to be deleted
+    pdb.set_trace() #to be deleted
     
     o_res = o_res[ind]
     ro_res = ro_res[ind]
@@ -409,8 +410,9 @@ def do_match(*varargin):
             #          plot(f1['X'](ic1,1),f1['X'](ic1,2),'g+',f2['X'](ic2,1),f2['X'](ic2,2),'go')
         plt.title('final')
         plt.hold('off')
-        plt.show()
-        
+        plt.draw()
+        plt.cla()
+        time.sleep(2)
         v = np.max(abs(o_a - o_b),0)
         vv = np.median(v)
         sim = np.dot(np.dot((mc_res.size ** 2), math.sqrt(np.max(o_res))), np.mean(n_weight)) / np.maximum((np.dot(ng_samp1, ng_samp2)), 1)
@@ -418,8 +420,16 @@ def do_match(*varargin):
             sim = np.dot(sim, 0.5)
     else:
         sim = 0
-    print 'sc_cost = ' + str(sc_cost)
-    print 'sim = ' + str(sim)
+    print 'sc_cost = ' + str(sc_cost) + '\n'
+    print 'sim = ' + str(sim) + '\n'
     return sim, angle, sc_cost, E
 
-do_match()
+#########TESTING############
+thread = threading.Thread()
+thread.run = do_match
+
+manager = plt.get_current_fig_manager()
+manager.window.after(100, thread.start)
+plt.figure(1)
+plt.show()
+

@@ -152,8 +152,8 @@ def fft_enhance_cubs(img, BLKSZ):
             
             fimg[(i + 1 -1), (j + 1 -1)] = NFFT / (compute_mean_frequency(dEnergy, r) + eps)
             #ridge separation
-            if j==16:
-                pdb.set_trace()
+##            if j==16:
+##                pdb.set_trace()
             oimg[(i + 1 -1), (j + 1 -1)] = compute_mean_angle(dEnergy, th)
             #ridge angle
             eimg[(i + 1 -1), (j + 1 -1)] = np.log(dTotal + eps)
@@ -320,6 +320,10 @@ def compute_mean_frequency(dEnergy, r):
     mr = num / (den + np.spacing(1))
     #end function compute_mean_angle
     return mr
-img = loadmat('img.mat')
-img = img['img']
-fft_enhance_cubs(img, 6)
+
+# Testing section #################
+                                 
+##img = loadmat('img.mat')        #
+##img = img['img']                #
+##fft_enhance_cubs(img, 6)        #
+

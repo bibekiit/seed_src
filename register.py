@@ -1,7 +1,7 @@
 import scipy.io as sio
 import numpy as np
 import copy
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #import pdb                              #for debugging only
 import time
 
@@ -105,7 +105,7 @@ def register(f1,f2):
                                 orients[i,j] = calc_orient(np.tile(oX[i,:],[1,1]), np.tile(rX[i,:],[1,1]), np.tile(oY[j,:],[1,1]), np.tile(rY[j,:],[1,1]))[0]
                                         #1st call to calc_orient()
 
-        print time.time() - start_time, "seconds"
+        #print time.time() - start_time, "seconds"
         
 
         #pdb.set_trace()
@@ -353,17 +353,19 @@ def register(f1,f2):
                                 i1 = ind1.copy()
                                 i2 = ind2.copy()
 
-                                #plt.hold(True)
-                                #plt.subplot(2,2,1)
-                                #plt.plot(Xtt[:,0],Xtt[:,1],'b+',Y[:,0],Y[:,1],'ro')
-                                #if GC == 1:
-                                #        plt.plot(Xtt[ic1,0],Xtt[ic1,1],'g+',Y[ic2,1],Y[ic2,1],'go')
-                                #plt.title(['i = ' + str(i) + ' j = ' + str(j) + ' n1 = ' + str(nsamp1) + ' n2 = ' + str(nsamp2)])
-                                #plt.hold(False)
-                                #plt.show()
-
+                                plt.hold('on')
+                                plt.subplot(2,2,1)
+                                plt.cla()
+                                plt.plot(Xtt[:,0],Xtt[:,1],'b+',Y[:,0],Y[:,1],'ro')
+                                if GC == 1:
+                                        plt.plot(Xtt[ic1,0],Xtt[ic1,1],'g+',Y[ic2,0],Y[ic2,1],'go')
+                                plt.title(['i = ' + str(i) + ' j = ' + str(j) + ' n1 = ' + str(nsamp1) + ' n2 = ' + str(nsamp2)])
+                                plt.hold('on')
+                                plt.draw()
+                                time.sleep(2)
+                                
                                 #pdb.set_trace()
-        print time.time() - start_time, "seconds"
+        #print time.time() - start_time, "seconds"
 
 
         # two nested for loops end here
