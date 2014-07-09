@@ -66,14 +66,13 @@ def fft_enhance_cubs(img, BLKSZ):
         #for contrast enhancement
         ETHRESH = 6
         #threshold for the energy
+
     nHt, nWt = img.shape # nargout=2
-    #convert to DOUBLE
+    img = img.astype('float64') #convert to DOUBLE
     nBlkHt = math.floor((nHt - np.dot(2, OVRLP)) / BLKSZ)
     nBlkWt = math.floor((nWt - np.dot(2, OVRLP)) / BLKSZ)
-    fftSrc = np.zeros(shape=(np.dot(nBlkHt, nBlkWt), np.dot(NFFT, NFFT)), dtype='float64')
-    #stores FFT
-    nWndSz = BLKSZ + np.dot(2, OVRLP)
-    #size of analysis window. 
+    fftSrc = np.zeros(shape=(np.dot(nBlkHt, nBlkWt), np.dot(NFFT, NFFT)), dtype='float64')#stores FFT
+    nWndSz = BLKSZ + np.dot(2, OVRLP) #size of analysis window. 
     #-------------------------
     #allocate outputs
     #-------------------------
@@ -82,103 +81,85 @@ def fft_enhance_cubs(img, BLKSZ):
     bwimg = np.zeros(shape=(nBlkHt, nBlkWt), dtype='float64')
     eimg = np.zeros(shape=(nBlkHt, nBlkWt), dtype='float64')
     enhimg = np.zeros(shape=(nHt, nWt), dtype='float64')
+
     #-------------------------
     #precomputations
     #-------------------------
     x, y = np.meshgrid(range(0, (nWndSz - 1 +1)), range(0, (nWndSz - 1 +1))) # nargout=2
-    dMult = (- 1) ** (x + y)
-    #used to center the FFT
+    dMult = (- 1) ** (x + y)#used to center the FFT
     x, y = np.meshgrid(np.arange(- NFFT / 2, (NFFT / 2 - 1 +1)), np.arange(- NFFT / 2, (NFFT / 2 - 1 +1))) # nargout=2
     eps = np.spacing(1)
     r = np.sqrt(x ** 2 + y ** 2) + eps
     th = np.arctan2(y, x)
     th[th < 0] = th[th < 0] + np.pi
-    w = raised_cosine_window(BLKSZ, OVRLP)
-    #spectral window
+    w = raised_cosine_window(BLKSZ, OVRLP)#spectral window
+
     #-------------------------
     #Load filters
     #-------------------------
-    angf = loadmat('angular_filters_pi_4',matlab_compatible=True)['angf']
-    #now angf_pi_4 has filter coefficients
+    angf = loadmat('angular_filters_pi_4',matlab_compatible=True)['angf']#now angf_pi_4 has filter coefficients
     angf_pi_4 = angf
-    angf = loadmat('angular_filters_pi_2',matlab_compatible=True)['angf']
-    #now angf_pi_2 has filter coefficients
+    angf = loadmat('angular_filters_pi_2',matlab_compatible=True)['angf']#now angf_pi_2 has filter coefficients
     angf_pi_2 = angf
     #-------------------------
     #Bandpass filter
     #-------------------------
     FLOW = NFFT / float(RMAX)
     FHIGH = NFFT / float(RMIN)
-    dRLow = 1.0 / (1 + (r / FHIGH) ** 4)
-    #low pass butterworth filter
-    dRHigh = 1.0 / (1 + (FLOW / r) ** 4)
-    #high pass butterworth filter
-    dBPass = dRLow * dRHigh
-    #bandpass
+    dRLow = 1.0 / (1 + (r / FHIGH) ** 4)#low pass butterworth filter
+    dRHigh = 1.0 / (1 + (FLOW / r) ** 4)#high pass butterworth filter
+    dBPass = dRLow * dRHigh#bandpass
+
     #-------------------------
     #FFT Analysis
     #-------------------------
-    fftSrc = fftSrc + 0j
-    # makes fftSrc complex for later assignment from complex matrix blkfft
-    #-------------------------
+
+    fftSrc = fftSrc + 0j# makes fftSrc complex for later assignment from complex matrix blkfft
     for i in range(0, (int(nBlkHt) - 1 +1)):
         nRow = np.dot(i, BLKSZ) + OVRLP + 1
         for j in range(0, (int(nBlkWt) - 1 +1)):
+            if np.logical_and(i==6,j == 50):
+                pdb.set_trace()
             nCol = np.dot(j, BLKSZ) + OVRLP + 1
             #extract local block
-            blk = img.copy()[(nRow - OVRLP -1):nRow + BLKSZ + OVRLP - 1, (nCol - OVRLP -1):nCol + BLKSZ + OVRLP - 1]
-            #remove dc
+            blk = img.copy()[(nRow - OVRLP -1):nRow + BLKSZ + OVRLP - 1, (nCol - OVRLP -1):nCol + BLKSZ + OVRLP - 1]#remove dc
             dAvg = np.sum(np.sum(blk)) / (np.dot(nWndSz, nWndSz))
-            blk = blk - dAvg
-            #remove DC content
-            blk = blk * w
-            #multiply by spectral window
+            blk = blk - dAvg#remove DC content
+            blk = blk * w#multiply by spectral window
             #--------------------------
             #do pre filtering
             #--------------------------
             blkfft = np.fft.fft2(blk * dMult, (NFFT, NFFT))
-            blkfft = blkfft * dBPass
-            #band pass filtering
+            blkfft = blkfft * dBPass#band pass filtering
             dEnergy = abs(blkfft * blkfft)
-            blkfft = blkfft * np.sqrt(dEnergy)
-            #root filtering(for diffusion)
+            blkfft = blkfft * np.sqrt(dEnergy)#root filtering(for diffusion)
             fftSrc[(np.dot(nBlkWt, i) + j + 1 -1), :] = blkfft.copy().flatten(1)
-            dEnergy = abs(blkfft * blkfft)
-            #----REDUCE THIS COMPUTATION----
+            dEnergy = abs(blkfft * blkfft)#----REDUCE THIS COMPUTATION----
             #--------------------------
             #compute statistics
             #--------------------------
+
             dTotal = np.sum(np.sum(dEnergy)) / (np.dot(NFFT, NFFT))
             
-            fimg[(i + 1 -1), (j + 1 -1)] = NFFT / (compute_mean_frequency(dEnergy, r) + eps)
-            #ridge separation
-##            if j==16:
-##                pdb.set_trace()
-            oimg[(i + 1 -1), (j + 1 -1)] = compute_mean_angle(dEnergy, th)
-            #ridge angle
-            eimg[(i + 1 -1), (j + 1 -1)] = np.log(dTotal + eps)
-            #np.spacing(1) is a small number taken to avoid log(0)
-            #used for segmentation
-        #for j
-    #for i
+            fimg[(i + 1 -1), (j + 1 -1)] = NFFT / (compute_mean_frequency(dEnergy, r) + eps)#ridge separation
+            oimg[(i + 1 -1), (j + 1 -1)] = compute_mean_angle(dEnergy, th)#ridge angle
+            eimg[(i + 1 -1), (j + 1 -1)] = np.log(dTotal + eps)#np.spacing(1) is a small number taken to avoid log(0)#used for segmentation
+    pdb.set_trace() #for debugging
     #-------------------------
     #precomputations
     #-------------------------
     x, y = np.meshgrid(np.arange(- NFFT / 2, (NFFT / 2 - 1 +1)), np.arange(- NFFT / 2, (NFFT / 2 - 1 +1))) # nargout=2
-    dMult = (- 1) ** (x + y)
-    #used to center the FFT
+    dMult = (- 1) ** (x + y)#used to center the FFT
+
     #-------------------------
     #process the resulting maps
     #-------------------------
     for i in range(1, 4):
-        oimg = soi.smoothen_orientation_image(oimg)
-    #smoothen orientation image
-    fimg = sfi.smoothen_frequency_image(fimg, RMIN, RMAX, 5)
-    #diffuse frequency image
-    cimg = cc.compute_coherence(oimg)
-    #coherence image for bandwidth
-    bwimg = get_angular_bw_image(cimg)
-    #QUANTIZED bandwidth image
+        oimg = soi.smoothen_orientation_image(oimg)#smoothen orientation image
+    pdb.set_trace() #for debugging
+    fimg = sfi.smoothen_frequency_image(fimg, RMIN, RMAX, 5)#diffuse frequency image
+    cimg = cc.compute_coherence(oimg)#coherence image for bandwidth
+    bwimg = get_angular_bw_image(cimg)#QUANTIZED bandwidth image
     #-------------------------
     #FFT reconstruction
     #-------------------------
@@ -197,9 +178,8 @@ def fft_enhance_cubs(img, BLKSZ):
             blkfft = blkfft * (af)
             blk = np.real(np.fft.ifft2(blkfft) * dMult)
             enhimg[(nRow -1):nRow + BLKSZ - 1, (nCol -1):nCol + BLKSZ - 1] = blk[(OVRLP + 1 -1):OVRLP + BLKSZ, (OVRLP + 1 -1):OVRLP + BLKSZ]
-        #for j
-    #for i
     #end block processing
+    pdb.set_trace() #for debugging
     #--------------------------
     #contrast enhancement
     #--------------------------
@@ -207,6 +187,7 @@ def fft_enhance_cubs(img, BLKSZ):
     mx = np.max(enhimg)
     mn = np.min(enhimg)
     enhimg = (np.dot((enhimg - mn) / (mx - mn), 254) + 1).astype('uint8')
+
     #--------------------------
     #clean up the image
     #--------------------------
@@ -228,6 +209,7 @@ def raised_cosine(nBlkSz, nOvrlp):
     x = abs(np.arange(- nWndSz / 2, (nWndSz / 2 - 1 +1)))
     y = np.dot(0.5, (np.cos(np.dot(np.pi, (x - nBlkSz / 2)) / nOvrlp) + 1))
     y[abs(x) < nBlkSz / 2] = 1
+    return y
     #end function raised_cosine
     #-----------------------------------
     #raised_cosine_window
@@ -238,10 +220,11 @@ def raised_cosine(nBlkSz, nOvrlp):
     #nBlkSz - [IN]  the window is constant here
     #nOvrlp - [IN]  the window has transition here
     #-----------------------------------
-    return y
+    
 def raised_cosine_window(blksz, ovrlp):
     y = raised_cosine(blksz, ovrlp)
     w = np.dot(np.tile(y,(1,1)).T, np.tile(y,(1,1)))
+    return w
     #end function raised_cosine_window
     #---------------------------------------------------------------------
     #get_angular_filter
@@ -254,7 +237,7 @@ def raised_cosine_window(blksz, ovrlp):
     #bw- angular bandwidth(obtained from bandwidth image)
     #angf_xx - precomputed filters (using angular_filter_bank.m)
     #-----------------------------------------------------------------------
-    return w
+    
 def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
     global NFFT
     TSTEPS = angf_pi_4.shape[1]
@@ -269,6 +252,7 @@ def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
             r = np.reshape(angf_pi_2[:, (i -1)], (NFFT, NFFT)).T
         else:
             r = np.ones(shape=(NFFT, NFFT), dtype='float64')
+    return r
     #end function get_angular_filter
     #-----------------------------------------------------------
     #get_angular_bw_image
@@ -277,15 +261,13 @@ def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
     #syntax:
     #bwimg = get_angular_bw_image(c)
     #-----------------------------------------------------------
-    return r
+    
 def get_angular_bw_image(c):
     bwimg = np.zeros(shape=c.shape, dtype='float64')
-    bwimg[:, :] = np.pi / 2
-    #med bw
-    bwimg[(c <= 0.7 -1)] = np.pi
-    #high bw
-    bwimg[c >= 0.9] = np.pi / 4
-    #low bw
+    bwimg[:, :] = np.pi / 2#med bw
+    bwimg[(c <= 0.7 -1)] = np.pi#high bw
+    bwimg[c >= 0.9] = np.pi / 4#low bw
+    return bwimg
     #end function get_angular_bw
     #-----------------------------------------------------------
     #get_angular_bw_image
@@ -294,7 +276,7 @@ def get_angular_bw_image(c):
     #syntax:
     #bwimg = get_angular_bw_image(c)
     #-----------------------------------------------------------
-    return bwimg
+    
 def compute_mean_angle(dEnergy, th):
     global NFFT
     sth = np.sin(np.dot(2, th))
@@ -304,6 +286,7 @@ def compute_mean_angle(dEnergy, th):
     mth = np.dot(0.5, math.atan2(num, den))
     if (mth < 0):
         mth = mth + np.pi
+    return mth
     #end function compute_mean_angle
     #-----------------------------------------------------------
     #get_angular_bw_image
@@ -312,18 +295,19 @@ def compute_mean_angle(dEnergy, th):
     #syntax:
     #bwimg = get_angular_bw_image(c)
     #-----------------------------------------------------------
-    return mth
+    
 def compute_mean_frequency(dEnergy, r):
     global NFFT
     num = np.sum(np.sum(dEnergy * r))
     den = np.sum(np.sum(dEnergy))
     mr = num / (den + np.spacing(1))
-    #end function compute_mean_angle
     return mr
+    #end function compute_mean_angle
+    
 
 # Testing section #################
                                  
-##img = loadmat('img.mat')        #
-##img = img['img']                #
-##fft_enhance_cubs(img, 6)        #
+img = loadmat('enhimg.mat')        #
+img = img['enhimg']                #
+fft_enhance_cubs(img, 6)        #
 

@@ -269,6 +269,7 @@ def plotridgeorient(orient, spacing, im, figno=2):
     plt.quiver(x,y,v,u,linewidth=0.5)
     plt.draw()
     
+    
 ## FREQEST - Estimate fingerprint ridge frequency within image block
 ##
 ## Function to estimate the fingerprint ridge frequency within a small block
@@ -517,10 +518,9 @@ def ridgefilter(*varargin):
             
     if showfilter:
         # Display largest scale filter for inspection
-        plt.figure(7);
         plt.imshow(filter1[0][180 / angleInc -1], cmap = plt.get_cmap("gray")); # cmap = plt.get_cmap("gray"));
         plt.title('filter');
-        plt.show()
+        plt.draw()
         
     # Find indices of matrix points greater than maxsze from the image
     # boundary
@@ -560,64 +560,75 @@ def testfin(im):
     # Determine ridge orientations
     [orientim, reliability] = ridgeorient(normim, 1, 5, 5)
     
-
-
-
     # Determine ridge frequency values across the image
     blksze = 36; 
     [freq, medfreq] = ridgefreq(normim, mask, orientim, blksze, 5, 5, 15);
 
-##
-##    # Actually I find the median frequency value used across the whole
-##    # fingerprint gives a more satisfactory result...
-##    freq = medfreq*mask;
-##
-##
-##    # Now apply filters to enhance the ridge pattern
-##    newim = ridgefilter(normim, orientim, freq, 0.5, 0.5, 1);
-##    plt.figure(4)
-##    plt.imshow(newim, cmap = plt.get_cmap("gray"))
-##    plt.title('image after applying gabor filter')
-##    plt.show()
-##
-##    # Binarise, ridge/valley threshold is 0
-##    binim = newim > 0;
-##    plt.figure(5)
-##    plt.imshow(binim, cmap = plt.get_cmap("gray"))
-##    plt.title('binarised image')
-##    plt.show()
-##
-##    # Display binary image for where the mask values are one and where
-##    # the orientation reliability is greater than 0.5
-##    plt.figure(7)
-##    plt.imshow(binim*mask*(reliability>0.5), cmap = plt.get_cmap("gray"))
-##    plt.show()
-##
-##    return [newim, binim, mask, reliability, orientim]
-    return [im2, normim, reliability, orientim, freq]
+
+    # Actually I find the median frequency value used across the whole
+    # fingerprint gives a more satisfactory result...
+    freq = medfreq*mask;
+
+
+    # Now apply filters to enhance the ridge pattern
+    newim = ridgefilter(normim, orientim, freq, 0.5, 0.5, 1);
+    
+
+    # Binarise, ridge/valley threshold is 0
+    binim = newim > 0;
+    
+    return [im2, normim, reliability, orientim, freq, newim, binim, mask]
+
 def main():
+
     im = plt.imread("DB1_B\\108_3.tif")
-    [im2, normim, reliability, orientim, freq] = testfin(im)
-    plt.imshow(im, cmap = plt.get_cmap("gray")) # this cmap is not clear
+    
+    [im2, normim, reliability, orientim, freq, newim, binim, mask] = testfin(im)
+    
+    plt.imshow(im, cmap = plt.get_cmap("gray")) 
     plt.draw()
     time.sleep(2)
-    plt.imshow(im2, cmap = plt.get_cmap("gray")) # this cmap is not clear
+    
+    plt.imshow(im2, cmap = plt.get_cmap("gray")) 
     plt.draw()
     time.sleep(2)
+    
     plt.imshow(normim, cmap = plt.get_cmap("gray"))
     plt.title('normalized image')
     plt.draw()
     time.sleep(2)
-    plt.quiver.func_closure
+    
     plotridgeorient(orientim, 20, im, 2)
+    plt.clf()
     time.sleep(2)
+    
     plt.imshow(reliability, cmap = plt.get_cmap("gray"))
     plt.title('reliability')
     plt.draw()
-    ##    plt.figure(3)
+    time.sleep(2)
+    
     plt.imshow(freq, cmap = plt.get_cmap("gray"))
     plt.title('frequency image')
     plt.draw()
+    time.sleep(2)
+    
+    plt.imshow(newim, cmap = plt.get_cmap("gray"))
+    plt.title('image after applying gabor filter')
+    plt.draw()
+    time.sleep(2)
+    
+    plt.imshow(binim, cmap = plt.get_cmap("gray"))
+    plt.title('binarised image')
+    plt.draw()
+    time.sleep(2)
+
+    # Display binary image for where the mask values are one and where
+    # the orientation reliability is greater than 0.5
+    #plt.figure(7)
+    plt.imshow(binim*mask*(reliability>0.5), cmap = plt.get_cmap("gray"))
+    plt.title('final image')
+    plt.draw()
+    
     #plt.close('all')
 
 #########TESTING############
