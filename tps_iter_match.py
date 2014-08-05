@@ -124,7 +124,6 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         #JI: cost matrix with dummy nodes appended
         costmat2[0:nsamp1, 0:nsamp2] = costmat
         #disp('running hungarian alg.')
-
         costmat2 = costmat2[(l_a + 1 -1):nsamp2, (l_a + 1 -1):nsamp2]
 
         dist_m = ds.dist2(X[(l_a + 1 -1):nsamp1], Y[(l_a + 1 -1):nsamp2])
@@ -175,6 +174,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
                 if costmat2[(cvec[(tt -1)] - l_a - 1 ), (tt -1)] > 1.4:
                     #print costmat2[(cvec[(tt -1)] - l_a - 1 ), (tt -1)]
                     cvec[(tt -1)] = nsamp2
+            
         else:
             orient_res = - 1
             mse2 = 1
@@ -183,7 +183,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
             theta_offset_by_warping = 50
             return sc_cost, Et, cvec, angle
 
-        cvec = np.hstack([np.array(range(1, l_a+1)),cvec])
+        cvec = np.hstack((np.array(range(1, l_a+1)),cvec))
 
         # update outlier indicator vectors
         a = np.sort(cvec) # nargout=2
@@ -220,6 +220,7 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
         for i in range(l_a + 1, (np.minimum(ind_good.size, nsamp1) +1)):
             if dd[(i -1), (i -1)] < 0.1:
                 i_vgood = np.concatenate([i_vgood, np.array([i])])
+        i_vgood = np.asarray(i_vgood)
         ind_good = ind_good[(i_vgood -1)] + 1
 
         n_good = max(ind_good.shape)
@@ -397,20 +398,24 @@ def tps_iter_match_1(m1, m2, X, Y, orients, nbins_theta, nbins_r, r_inner, r_out
 
                 if intersect_flag == 1 and costmat[(cvec[(i -1)] -1), (i -1)] > 1:
                     ll = costmat[(cvec[(i -1)] -1), (i -1)]
-                    print 'l1 = ' + str(l1) + '\n'
+                    print 'l1 = ' + str(ll) + '\n'
                     continue
 
                 if (costmat[(cvec[(i -1)] -1), (i -1)] < 1.31 and OLD_METHOD == 0) or (d1 < 0.013 and intersect_flag == 0 and OLD_METHOD == 1):
                     # && costmat(cvec(i), i) < 20
-                    map_[(index -1)] = np.array([cvec[(i -1)] - l_a, i])
+                    if index ==1:
+                        map_ = np.insert(map_, (index -1), np.hstack((cvec[(i -1)] - l_a, i)))
+                    else:
+                        map_ = np.vstack((map_, np.hstack((cvec[(i -1)] - l_a, i))))
                     index = index + 1
                 else:
                     ll = costmat[(cvec[(i -1)] -1), (i -1)]
-                    print 'l1 = ' + str(l1) + '\n'
+                    print 'l1 = ' + str(ll) + '\n'
 
     cvec = map_
+    
 
-    return [sc_cost, Et, cvec, angle]
+    return [sc_cost, Et, cvec.astype('int'), angle]
 
 ##m1 = loadmat('m1.mat')['m1']
 ##m2 = loadmat('m2.mat')['m2']

@@ -6,6 +6,8 @@ import pdb, math
 import smoothen_orientation_image as soi
 import smoothen_frequency_image as sfi
 import compute_coherence as cc
+import matplotlib.pyplot as plt
+import scipy 
 
 #--------------------------------------------------------------------------
 #fft_enhance_cubs
@@ -69,8 +71,8 @@ def fft_enhance_cubs(img, BLKSZ):
 
     nHt, nWt = img.shape # nargout=2
     img = img.astype('float64') #convert to DOUBLE
-    nBlkHt = math.floor((nHt - np.dot(2, OVRLP)) / BLKSZ)
-    nBlkWt = math.floor((nWt - np.dot(2, OVRLP)) / BLKSZ)
+    nBlkHt = math.floor((nHt - np.dot(2, OVRLP)) / BLKSZ) 
+    nBlkWt = math.floor((nWt - np.dot(2, OVRLP)) / BLKSZ) 
     fftSrc = np.zeros(shape=(np.dot(nBlkHt, nBlkWt), np.dot(NFFT, NFFT)), dtype='float64')#stores FFT
     nWndSz = BLKSZ + np.dot(2, OVRLP) #size of analysis window. 
     #-------------------------
@@ -118,12 +120,10 @@ def fft_enhance_cubs(img, BLKSZ):
     for i in range(0, (int(nBlkHt) - 1 +1)):
         nRow = np.dot(i, BLKSZ) + OVRLP + 1
         for j in range(0, (int(nBlkWt) - 1 +1)):
-            if np.logical_and(i==6,j == 50):
-                pdb.set_trace()
             nCol = np.dot(j, BLKSZ) + OVRLP + 1
             #extract local block
-            blk = img.copy()[(nRow - OVRLP -1):nRow + BLKSZ + OVRLP - 1, (nCol - OVRLP -1):nCol + BLKSZ + OVRLP - 1]#remove dc
-            dAvg = np.sum(np.sum(blk)) / (np.dot(nWndSz, nWndSz))
+            blk = img[(nRow - OVRLP -1):nRow + BLKSZ + OVRLP - 1][:, (nCol - OVRLP -1):nCol + BLKSZ + OVRLP - 1]#remove dc
+            dAvg = np.sum(blk) / (np.dot(nWndSz, nWndSz))
             blk = blk - dAvg#remove DC content
             blk = blk * w#multiply by spectral window
             #--------------------------
@@ -144,7 +144,7 @@ def fft_enhance_cubs(img, BLKSZ):
             fimg[(i + 1 -1), (j + 1 -1)] = NFFT / (compute_mean_frequency(dEnergy, r) + eps)#ridge separation
             oimg[(i + 1 -1), (j + 1 -1)] = compute_mean_angle(dEnergy, th)#ridge angle
             eimg[(i + 1 -1), (j + 1 -1)] = np.log(dTotal + eps)#np.spacing(1) is a small number taken to avoid log(0)#used for segmentation
-    pdb.set_trace() #for debugging
+
     #-------------------------
     #precomputations
     #-------------------------
@@ -156,13 +156,16 @@ def fft_enhance_cubs(img, BLKSZ):
     #-------------------------
     for i in range(1, 4):
         oimg = soi.smoothen_orientation_image(oimg)#smoothen orientation image
-    pdb.set_trace() #for debugging
     fimg = sfi.smoothen_frequency_image(fimg, RMIN, RMAX, 5)#diffuse frequency image
     cimg = cc.compute_coherence(oimg)#coherence image for bandwidth
     bwimg = get_angular_bw_image(cimg)#QUANTIZED bandwidth image
     #-------------------------
     #FFT reconstruction
     #-------------------------
+
+##    oimg = loadmat('oimg.mat')['oimg']
+##    fftSrc = loadmat('fftSrc.mat')['fftSrc']
+    
     for i in range(0, (int(nBlkHt) - 1 +1)):
         for j in range(0, (int(nBlkWt) - 1 +1)):
             nRow = np.dot(i, BLKSZ) + OVRLP + 1
@@ -170,16 +173,15 @@ def fft_enhance_cubs(img, BLKSZ):
             #--------------------------
             #apply the filters
             #--------------------------
-            blkfft = np.reshape(np.tile(fftSrc[(np.dot(nBlkWt, i) + j + 1 -1), :],(1,1)).T,(NFFT,NFFT))
+            blkfft = np.reshape(np.tile(fftSrc[(np.dot(nBlkWt, i) + j + 1 -1), :],(1,1)).T,(NFFT,NFFT)).T
             #--------------------------
             #reconstruction
             #--------------------------
             af = get_angular_filter(oimg[(i + 1 -1), (j + 1 -1)], bwimg[(i + 1 -1), (j + 1 -1)], angf_pi_4, angf_pi_2)
             blkfft = blkfft * (af)
             blk = np.real(np.fft.ifft2(blkfft) * dMult)
-            enhimg[(nRow -1):nRow + BLKSZ - 1, (nCol -1):nCol + BLKSZ - 1] = blk[(OVRLP + 1 -1):OVRLP + BLKSZ, (OVRLP + 1 -1):OVRLP + BLKSZ]
+            enhimg[np.ix_(range((nRow -1),nRow + BLKSZ - 1),range((nCol -1),nCol + BLKSZ - 1))] = blk[(OVRLP + 1 -1):OVRLP + BLKSZ][:,(OVRLP + 1 -1):OVRLP + BLKSZ].copy()
     #end block processing
-    pdb.set_trace() #for debugging
     #--------------------------
     #contrast enhancement
     #--------------------------
@@ -187,23 +189,25 @@ def fft_enhance_cubs(img, BLKSZ):
     mx = np.max(enhimg)
     mn = np.min(enhimg)
     enhimg = (np.dot((enhimg - mn) / (mx - mn), 254) + 1).astype('uint8')
-
     #--------------------------
     #clean up the image
     #--------------------------
-    emsk = np.resize(eimg, (nHt, nWt))
+    emsk = scipy.misc.imresize(eimg, (nHt, nWt))
     enhimg[emsk < ETHRESH] = 128
+
+    return [cimg, oimg, fimg, bwimg, eimg, enhimg]
     #end function fft_enhance_cubs
-    #-----------------------------------
-    #raised_cosine
-    #returns 1D spectral window
-    #syntax:
-    #y = raised_cosine(nBlkSz,nOvrlp)
-    #y      - [OUT] 1D raised cosine function
-    #nBlkSz - [IN]  the window is constant here
-    #nOvrlp - [IN]  the window has transition here
-    #-----------------------------------
-    return cimg, oimg, fimg, bwimg, eimg, enhimg
+
+#-----------------------------------
+#raised_cosine
+#returns 1D spectral window
+#syntax:
+#y = raised_cosine(nBlkSz,nOvrlp)
+#y      - [OUT] 1D raised cosine function
+#nBlkSz - [IN]  the window is constant here
+#nOvrlp - [IN]  the window has transition here
+#-----------------------------------
+    
 def raised_cosine(nBlkSz, nOvrlp):
     nWndSz = (nBlkSz + np.dot(2, nOvrlp))
     x = abs(np.arange(- nWndSz / 2, (nWndSz / 2 - 1 +1)))
@@ -246,10 +250,10 @@ def get_angular_filter(t0, bw, angf_pi_4, angf_pi_2):
     i = np.floor((t0 + DELTAT / 2) / DELTAT)
     i = np.mod(i, TSTEPS) + 1
     if (bw == np.pi / 4):
-        r = np.reshape(angf_pi_4[:, (i -1)], (NFFT, NFFT)).T
+        r = np.reshape(angf_pi_4[:, (i -1)], (NFFT, NFFT))
     else:
         if (bw == np.pi / 2):
-            r = np.reshape(angf_pi_2[:, (i -1)], (NFFT, NFFT)).T
+            r = np.reshape(angf_pi_2[:, (i -1)], (NFFT, NFFT))
         else:
             r = np.ones(shape=(NFFT, NFFT), dtype='float64')
     return r
@@ -281,8 +285,8 @@ def compute_mean_angle(dEnergy, th):
     global NFFT
     sth = np.sin(np.dot(2, th))
     cth = np.cos(np.dot(2, th))
-    num = np.sum(np.sum(dEnergy * sth))
-    den = np.sum(np.sum(dEnergy * cth))
+    num = np.sum(dEnergy * sth)
+    den = np.sum(dEnergy * cth)
     mth = np.dot(0.5, math.atan2(num, den))
     if (mth < 0):
         mth = mth + np.pi
@@ -298,8 +302,8 @@ def compute_mean_angle(dEnergy, th):
     
 def compute_mean_frequency(dEnergy, r):
     global NFFT
-    num = np.sum(np.sum(dEnergy * r))
-    den = np.sum(np.sum(dEnergy))
+    num = np.sum(dEnergy * r)
+    den = np.sum(dEnergy)
     mr = num / (den + np.spacing(1))
     return mr
     #end function compute_mean_angle
@@ -307,7 +311,17 @@ def compute_mean_frequency(dEnergy, r):
 
 # Testing section #################
                                  
-img = loadmat('enhimg.mat')        #
-img = img['enhimg']                #
-fft_enhance_cubs(img, 6)        #
+##def main():
+##img = loadmat('enhimg.mat')        #
+##img = img['img']                #
+##fft_enhance_cubs(img, 6)        #
+##
+###########TESTING############
+##thread = threading.Thread()
+##thread.run = main
+##
+##manager = plt.get_current_fig_manager()
+##manager.window.after(100, thread.start)
+##plt.figure(1)
+##plt.show()
 

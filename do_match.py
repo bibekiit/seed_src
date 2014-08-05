@@ -28,8 +28,8 @@ def do_match(*varargin):
     if nargin > 1:
         f2 = varargin[1]
     if nargin == 0:
-        f1 = 'DB1_B\\102_2.tif'
-        f2 = 'DB1_B\\108_3.tif'
+        f1 = 'DB1_B\\105_4.tif'
+        f2 = 'DB1_B\\105_6.tif'
     #load template fingerprint
     X = np.genfromtxt(f1+'.X',delimiter=',')
     m1 = np.genfromtxt(f1+'.m',delimiter=',')
@@ -179,8 +179,8 @@ def do_match(*varargin):
             ng_samp2 = inda2.size
 
         # overlap region index sets have anchor minutiae indexes removed.
-        inda1 = np.setdiff1d(inda1[np.flatnonzero(f1['M'][inda1, 2] < 5)], res['map'][:, 0])
-        inda2 = np.setdiff1d(inda2[np.flatnonzero(f2['M'][inda2, 2] < 5)], res['map'][:, 1])
+        inda1 = np.setdiff1d(inda1[np.flatnonzero(f1['M'][inda1-1, 2] < 5)], res['map'][:, 0])
+        inda2 = np.setdiff1d(inda2[np.flatnonzero(f2['M'][inda2-1, 2] < 5)], res['map'][:, 1])
 
         y = 0
         redo = np.array([])
@@ -201,7 +201,7 @@ def do_match(*varargin):
         orients = np.zeros((inda1.size, inda2.size))
         for i in range(1, (inda1.size +1)):
             for j in range(1, (inda2.size +1)):
-                if f1['M'][inda1[(i -1)], 2] < 5 and f2['M'][inda2[(j -1)], 2] < 5:
+                if f1['M'][inda1[(i -1)]-1, 2] < 5 and f2['M'][inda2[(j -1)]-1, 2] < 5:
                     orients[(i -1), (j -1)] = calc_orient(np.tile(f1['X'][inda1[(i -1)]-1, :],(1,1)), np.tile(f1['R'][inda1[(i -1)]-1, :],(1,1)), np.tile(f2['X'][inda2[(j -1)]-1, :],(1,1)), np.tile(f2['R'][inda2[(j -1)]-1, :],(1,1)))[0]
                 else:
                     orients[(i -1), (j -1)] = 0
@@ -209,16 +209,18 @@ def do_match(*varargin):
         if np.logical_and(inda1.size > 1, inda2.size > 1):
             if inda1.size > inda2.size:
                 orients = orients.T
-                t_res_map = res['map'][:, np.array([2, 1]).reshape(1, -1)]
-                [sc_cost3, E, cvec, angle] = tim.tps_iter_match_1(f2['M'], f1['M'], f2['X'], f1['X'], orients, nbins_theta, nbins_r, r_inner, r_outer, 3, r, beta_init, np.tile(inda1,(1,1)), np.tile(inda2,(1,1)), t_res_map) # nargout=4
+                t_res_map = res['map'][:,[1, 0]]
+                [sc_cost3, E, cvec, angle] = tim.tps_iter_match_1(f2['M'], f1['M'], f2['X'], f1['X'], orients, nbins_theta, nbins_r, r_inner, r_outer, 3, r, beta_init, np.tile(inda2,(1,1)), np.tile(inda1,(1,1)), t_res_map) # nargout=4
                 if cvec.size > 0:
-                    xx = np.array([inda1[(cvec[:, 1] -1)], inda2[(cvec[:, 0] -1)]]).reshape(1, -1).T
-                    res['map'] = np.array([res['map'], xx]).reshape(1, -1)
+                    cvec = np.tile(cvec,(1,1))
+                    xx = np.vstack((inda1[(cvec[:, 1] -1)], inda2[(cvec[:, 0] -1)])).T
+                    res['map'] = np.vstack((res['map'], xx))
             else:
                 [sc_cost3, E, cvec, angle] = tim.tps_iter_match_1(f1['M'], f2['M'], f1['X'], f2['X'], orients, nbins_theta, nbins_r, r_inner, r_outer, 3, r, beta_init, np.tile(inda1,(1,1)), np.tile(inda2,(1,1)), res['map']) # nargout=4
                 if cvec.size > 0:
-                    xx = np.array([inda1[(cvec[:, 0] -1)], inda2[(cvec[:, 1] -1)]]).reshape(1, -1).T
-                    res['map'] = np.array([res['map'], xx]).reshape(1, -1)
+                    cvec = np.tile(cvec,(1,1))
+                    xx = np.vstack((inda1[(cvec[:, 0] -1)], inda2[(cvec[:, 1] -1)])).T
+                    res['map'] = np.vstack((res['map'], xx))
 
         d1 = np.sqrt(ds.dist2(f1['X'], f1['X']))
         d2 = np.sqrt(ds.dist2(f2['X'], f2['X']))
@@ -240,9 +242,6 @@ def do_match(*varargin):
 
     if res['map'].size > 0:
         for i in range(1, (res['map'].shape[0] +1)):
-            if i == 12:
-                pdb.set_trace() #to be deleted
-            
             if res['map'][i -1, 0] == 0:
                 continue
             x = m1[(res['map'][i -1, 0] -1), 0]
@@ -286,9 +285,6 @@ def do_match(*varargin):
                         m_score = m_score + np.dot(np.dot(math.exp(- o_diff), math.exp(- dist_diff)), math.exp(- a_diff))
                         used.append(y)
                         t = t + 1
-            if m_score == 0:
-                continue
-            pdb.set_trace() #to be deleted
             n_weight = np.insert(n_weight, i-1, m_score + bonus)
 
             rox = f1['RO'][res['map'][i -1, 0]-1, :]
@@ -316,7 +312,6 @@ def do_match(*varargin):
             res['map'][np.setdiff1d(np.array([i-1]),np.flatnonzero(res['map'][:, 0] == res['map'][i -1, 0])), 0] = 0
             res['map'][np.setdiff1d(np.array([i-1]),np.flatnonzero(res['map'][:, 1] == res['map'][i -1, 1])), 0] = 0
 
-    
     sc_cost = 100
 
     if o_res.size > 1:
@@ -341,7 +336,7 @@ def do_match(*varargin):
                 sc_vals = np.insert(sc_vals, (i -1), 10)
         sc_cost = np.mean(sc_vals)
         #/exp(-(0.7-max(sqrt(res['area']),0))) 
-    #pdb.set_trace() #to be deleted
+    
     unknown_c = np.flatnonzero(o_res == - 1).size
 
     ind = np.intersect1d(np.flatnonzero(o_res > 0.25), np.flatnonzero(ro_res < 0.897))
@@ -349,7 +344,6 @@ def do_match(*varargin):
     for i in range(1, (ind.size +1)):
         dd1 = f1['N'][np.ix_(np.array(range(np.dot((res['map'][ind[(i-1)], 0] -1), (s1 - 1)) + 1, (np.dot((res['map'][ind[(i-1)], 0] -1), (s1 - 1)) + ns +1)))-1, range(2, 9))]
         dd2 = f2['N'][np.ix_(np.array(range(np.dot((res['map'][ind[(i-1)], 1] -1), (s2 - 1)) + 1, (np.dot((res['map'][ind[(i-1)], 1] -1), (s2 - 1)) + ns +1)))-1, range(2, 9))]
-    pdb.set_trace() #to be deleted
     
     o_res = o_res[ind]
     ro_res = ro_res[ind]
@@ -422,14 +416,14 @@ def do_match(*varargin):
         sim = 0
     print 'sc_cost = ' + str(sc_cost) + '\n'
     print 'sim = ' + str(sim) + '\n'
-    return sim, angle, sc_cost, E
+    return sim, angle, sc_cost
 
 #########TESTING############
-thread = threading.Thread()
-thread.run = do_match
-
-manager = plt.get_current_fig_manager()
-manager.window.after(100, thread.start)
-plt.figure(1)
-plt.show()
+##thread = threading.Thread()
+##thread.run = do_match
+##
+##manager = plt.get_current_fig_manager()
+##manager.window.after(100, thread.start)
+##plt.figure(1)
+##plt.show()
 

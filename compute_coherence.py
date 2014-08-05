@@ -26,10 +26,8 @@ def compute_coherence(oimg):
     #---------------
     #pad the image
     #---------------
-    oimg = np.vstack([oimg[0:N, :][ ::-1,:], oimg, oimg[(h - N + 1 -1):h, :][ ::-1,:]])
-    #pad the rows
-    oimg = np.hstack([oimg[:, 0:N][:, ::-1], oimg, oimg[:, (w - N + 1 -1):w][:, ::-1]])
-    #pad the cols
+    oimg = np.vstack([oimg[0:N, :][ ::-1,:], oimg, oimg[(h - N + 1 -1):h, :][ ::-1,:]])     #pad the rows
+    oimg = np.hstack([oimg[:, 0:N][:, ::-1], oimg, oimg[:, (w - N + 1 -1):w][:, ::-1]])    #pad the cols
     #compute coherence
     for i in range(N + 1, (h + N +1)):
         for j in range(N + 1, (w + N +1)):

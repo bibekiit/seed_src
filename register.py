@@ -164,7 +164,6 @@ def register(f1,f2):
         start_time = time.time()
                 
         for i in range(nsamp1):
-                print i
                 for j in range(nsamp2):
 
                                                 

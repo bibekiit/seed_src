@@ -516,11 +516,11 @@ def ridgefilter(*varargin):
         for o in range(1, int(180 / angleInc +1)):
             filter1[(k -1)][(o -1)] = ssig.interpolation.rotate(reffilter, - ((o*angleInc) + 90), mode='nearest',reshape=False); # 'crop');
             
-    if showfilter:
-        # Display largest scale filter for inspection
-        plt.imshow(filter1[0][180 / angleInc -1], cmap = plt.get_cmap("gray")); # cmap = plt.get_cmap("gray"));
-        plt.title('filter');
-        plt.draw()
+##    if showfilter:
+##        # Display largest scale filter for inspection
+##        plt.imshow(filter1[0][180 / angleInc -1], cmap = plt.get_cmap("gray")); # cmap = plt.get_cmap("gray"));
+##        plt.title('filter');
+##        plt.draw()
         
     # Find indices of matrix points greater than maxsze from the image
     # boundary
@@ -551,10 +551,10 @@ def ridgefilter(*varargin):
 def testfin(im):
 
     # Histogram equalization 
-    im2,cdf = histeq(im)
+    #im2,cdf = histeq(im)
     
     # Identify ridge-like regions and normalise image
-    [normim, mask, maskind] = ridgesegment(im2, blksze=16, thresh=0.1)
+    [normim, mask, maskind] = ridgesegment(im, blksze=16, thresh=0.1)
     
 
     # Determine ridge orientations
@@ -577,7 +577,8 @@ def testfin(im):
     # Binarise, ridge/valley threshold is 0
     binim = newim > 0;
     
-    return [im2, normim, reliability, orientim, freq, newim, binim, mask]
+    #return [im2, normim, reliability, orientim, freq, newim, binim, mask]
+    return [newim, binim, mask, reliability, orientim]
 
 def main():
 
@@ -634,12 +635,12 @@ def main():
     
 
 #########TESTING############
-thread = threading.Thread()
-thread.run = main
-
-manager = plt.get_current_fig_manager()
-manager.window.after(100, thread.start)
-plt.figure(1)
-plt.show()
+##thread = threading.Thread()
+##thread.run = main
+##
+##manager = plt.get_current_fig_manager()
+##manager.window.after(100, thread.start)
+##plt.figure(1)
+##plt.show()
 
   
